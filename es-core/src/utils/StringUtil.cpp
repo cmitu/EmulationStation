@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <stdarg.h>
+#include "Log.h"
 
 namespace Utils
 {
@@ -279,6 +280,19 @@ namespace Utils
 			return out;
 
 		} // format
+
+        // Simple XOR scrambling of a string, with an accompanying key
+        std::string scramble(const std::string& _input, const std::string& key)
+        {
+            std::string buffer = _input;
+
+            for (size_t i = 0; i < _input.size(); ++i) {               
+                buffer[i] = _input[i] ^ key[i];
+            }
+
+            return buffer;
+
+        } // scramble
 
 	} // String::
 
