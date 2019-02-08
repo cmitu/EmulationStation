@@ -29,24 +29,24 @@ std::string ResourceManager::getResourcePath(const std::string& path) const
 
 		// check in homepath
 		test = Utils::FileSystem::getHomePath() + "/.emulationstation/resources/" + &path[2];
-		if (Utils::FileSystem::exists(test))
+		if(Utils::FileSystem::exists(test))
 			return test;
 
 		// check in exepath
 		test = Utils::FileSystem::getExePath() + "/resources/" + &path[2];
-		if (Utils::FileSystem::exists(test))
+		if(Utils::FileSystem::exists(test))
 			return test;
 
 		// check in cwd
 		test = Utils::FileSystem::getCWDPath() + "/resources/" + &path[2];
-		if (Utils::FileSystem::exists(test))
+		if(Utils::FileSystem::exists(test))
 			return test;
 
 #if !defined(WIN32)
 
 		// check in the system's shared path
 		test = Utils::FileSystem::getSystemDataPath() + "/resources/" + &path[2];
-		if (Utils::FileSystem::exists(test))
+		if(Utils::FileSystem::exists(test))
 			return test;
 
 #endif
