@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 
 option(GLES "Set to ON if targeting OpenGL ES" ${GLES})
 option(GL "Set to ON if targeting Desktop OpenGL" ${GL})
+option(SYSTEM_DATA_DIR "Set the system shared resources path" ${SYSTEM_DATA_DIR})
 
 project(emulationstation-all)
 
@@ -88,6 +89,11 @@ if(MSVC)
     add_definitions(-DNOMINMAX)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP") #multi-processor compilation
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /MP") #multi-processor compilation
+endif()
+
+if (${SYSTEM_DATA_DIR})
+	add_definitions(-DSYSTEM_DATA_DIR="${SYSTEM_DATA_DIR}")
+	MESSAGE(STATUS "Setting system data directory to: ${SYSTEM_DATA_DIR}" )
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX)

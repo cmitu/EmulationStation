@@ -668,6 +668,13 @@ namespace Utils
 
 		} // isEquivalent
 
+#if !defined(WIN32)
+		std::string getSystemDataPath()
+		{
+			return SYSTEM_DATA_DIR;
+		} // getSystemSharedPath
+#endif
+
 	} // FileSystem::
 
 } // Utils::

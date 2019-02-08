@@ -5,6 +5,12 @@
 #include <list>
 #include <string>
 
+#if !defined(WIN32)
+#if !defined(SYSTEM_DATA_DIR)
+#define SYSTEM_DATA_DIR "/usr/local/share/emulationstation"
+#endif
+#endif // WIN32s
+
 namespace Utils
 {
 	namespace FileSystem
@@ -29,6 +35,9 @@ namespace Utils
 		std::string createRelativePath (const std::string& _path, const std::string& _relativeTo, const bool _allowHome);
 		std::string removeCommonPath   (const std::string& _path, const std::string& _common, bool& _contains);
 		std::string resolveSymlink     (const std::string& _path);
+#if !defined(WIN32)
+		std::string getSystemDataPath      ();
+#endif
 		bool        removeFile         (const std::string& _path);
 		bool        createDirectory    (const std::string& _path);
 		bool        exists             (const std::string& _path);

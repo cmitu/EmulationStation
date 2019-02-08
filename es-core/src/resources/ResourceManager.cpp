@@ -23,24 +23,33 @@ std::shared_ptr<ResourceManager>& ResourceManager::getInstance()
 std::string ResourceManager::getResourcePath(const std::string& path) const
 {
 	// check if this is a resource file
-	if((path[0] == ':') && (path[1] == '/'))
+	if ((path[0] == ':') && (path[1] == '/'))
 	{
 		std::string test;
 
 		// check in homepath
 		test = Utils::FileSystem::getHomePath() + "/.emulationstation/resources/" + &path[2];
-		if(Utils::FileSystem::exists(test))
+		if (Utils::FileSystem::exists(test))
 			return test;
 
 		// check in exepath
 		test = Utils::FileSystem::getExePath() + "/resources/" + &path[2];
-		if(Utils::FileSystem::exists(test))
+		if (Utils::FileSystem::exists(test))
 			return test;
 
 		// check in cwd
 		test = Utils::FileSystem::getCWDPath() + "/resources/" + &path[2];
-		if(Utils::FileSystem::exists(test))
+		if (Utils::FileSystem::exists(test))
 			return test;
+
+#if !defined(WIN32)
+
+		// check in the system's shared path
+		test = Utils::FileSystem::getSystemDataPath() + "/resources/" + &path[2];
+		if (Utils::FileSystem::exists(test))
+			return test;
+
+#endif
 	}
 
 	// not a resource, return unmodified path
