@@ -5,11 +5,15 @@
 #include <list>
 #include <string>
 
+#include "utils/Hash.h"
+
+
 namespace Utils
 {
 	namespace FileSystem
 	{
 		typedef std::list<std::string> stringList;
+		const size_t IO_READ_BUFFER_SIZE = 512 * 1024;
 
 		stringList  getDirContent      (const std::string& _path, const bool _recursive = false);
 		stringList  getPathList        (const std::string& _path);
@@ -38,7 +42,8 @@ namespace Utils
 		bool        isSymlink          (const std::string& _path);
 		bool        isHidden           (const std::string& _path);
 		bool        isEquivalent       (const std::string& _path1, const std::string& _path2);
-
+		std::string getFileDigest      (const std::string& _path, Hash& _hash);
+		long        getFileSize        (const std::string& _path);
 	} // FileSystem::
 
 } // Utils::

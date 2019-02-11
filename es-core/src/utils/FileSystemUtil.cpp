@@ -5,6 +5,9 @@
 #include "Settings.h"
 #include <sys/stat.h>
 #include <string.h>
+#include <iostream>
+#include <fstream>
+
 
 #if defined(_WIN32)
 // because windows...
@@ -667,6 +670,34 @@ namespace Utils
 			return ((info1.st_dev == info2.st_dev) && (info1.st_ino == info2.st_ino) && (info1.st_size == info2.st_size) && (info1.st_mtime == info2.st_mtime));
 
 		} // isEquivalent
+
+		std::string getFileDigest(const std::string& _path, Hash& _hash)
+		{
+			if (!isRegularFile(_path))
+				return "";
+
+			std::string path = getCanonicalPath(_path);
+			std::ifstream ifs(path, std::ios::binary | std::ios::in);
+			
+			char* buffer = new char[IO_READ_BUFFER_SIZE];
+
+			while (!ifs.eof())
+			{
+				ifs.read(buffer, IO_READ_BUFFER_SIZE);
+				_hash.add(buffer, size_t(ifs.gcount()));
+			}
+
+			ifs.close();
+
+			return _hash.getHash();
+		} // getFileDigest
+
+		// Doesn't do path validation, so check before the file is correct.
+		long getFileSize(const std::string& _path)
+		{
+			std::ifstream in(_path, std::ios::ate | std::ios::binary | std::ios::in);
+			return in.tellg();
+		} // getFileSize
 
 	} // FileSystem::
 

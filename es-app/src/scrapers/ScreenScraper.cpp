@@ -2,6 +2,8 @@
 
 #include "utils/TimeUtil.h"
 #include "utils/StringUtil.h"
+#include "utils/MD5.h"
+#include "utils/CRC32.h"
 #include "FileData.h"
 #include "Log.h"
 #include "PlatformId.h"
@@ -128,6 +130,24 @@ void screenscraper_generate_scraper_requests(const ScraperSearchParams& params,
 	path = ssConfig.getGameSearchUrl(params.game->getFileName());
 	auto& platforms = params.system->getPlatformIds();
 
+	// Calculate checksum for ROM
+	if (ScreenScraperRequest::shouldHash(params.game)) 
+	{
+		LOG(LogDebug) << "Hashing ROM " << params.game->getFileName();
+
+		MD5 hash1 = MD5();
+		const std::string digestMD5 = Utils::FileSystem::getFileDigest(params.game->getFullPath(), hash1);
+
+		if ( !digestMD5.empty())
+			path += "&md5=" + Utils::String::toUpper(digestMD5);
+
+		CRC32 hash2 = CRC32();
+		const std::string digestCRC32 = Utils::FileSystem::getFileDigest(params.game->getFullPath(), hash2);
+
+		if (!digestCRC32.empty())
+			path += "&crc=" + Utils::String::toUpper(digestCRC32);
+	}
+
 	for (auto platformIt = platforms.cbegin(); platformIt != platforms.cend(); platformIt++)
 	{
 		auto mapIt = screenscraper_platformid_map.find(*platformIt);
@@ -140,6 +160,7 @@ void screenscraper_generate_scraper_requests(const ScraperSearchParams& params,
 			LOG(LogWarning) << "ScreenScraper: no support for platform " << getPlatformName(*platformIt);
 		}
 
+		LOG(LogDebug) << "URL Request: " + path;
 		requests.push(std::unique_ptr<ScraperRequest>(new ScreenScraperRequest(requests, results, path)));
 	}
 
@@ -287,6 +308,23 @@ void ScreenScraperRequest::processGame(const pugi::xml_document& xmldoc, std::ve
 
 		results.push_back(result);
 	} // game
+}
+
+// Decice if the ROMname should be hashed. Don't hash if it's a folder, a placeholder/playlist type or if the size is too big.
+bool ScreenScraperRequest::shouldHash(FileData* game)
+{
+	const std::string extension = Utils::String::toUpper(Utils::FileSystem::getExtension(game->getFileName()));
+	
+	if (Utils::FileSystem::getFileSize(game->getFullPath()) > ScreenScraperRequest::ScreenScraperConfig::MAX_HASH_SIZE)
+		return false;
+
+	return 
+		game->getType() == GAME
+		&& extension != ".CUE"
+		&& extension != ".M3U"
+		&& extension != ".GDI"
+		&& extension != ".SVM"
+		;
 }
 
 // Currently not used in this module

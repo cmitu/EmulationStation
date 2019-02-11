@@ -19,9 +19,15 @@ public:
 	// ctor for a GetGame request
 	ScreenScraperRequest(std::vector<ScraperSearchResult>& resultsWrite, const std::string& url) : ScraperHttpRequest(resultsWrite, url), mRequestQueue(nullptr) {}
 
+	bool static shouldHash(FileData* game);
+
 	// Settings for the scraper
 	static const struct ScreenScraperConfig {
 		std::string getGameSearchUrl(const std::string gameName) const;
+
+		// Maximum size for a hashing a ROM file. Anything larger should not be hashed.
+		// <ref>shouldHash</ref>
+		static const long MAX_HASH_SIZE = 20 * 1024 * 1024; 
 
 		// Access to the API
 		const std::string API_DEV_U = { 91, 32, 7, 17 };
