@@ -26,7 +26,6 @@ public:
 		std::string getGameSearchUrl(const std::string gameName) const;
 
 		// Maximum size for a hashing a ROM file. Anything larger should not be hashed.
-		// <ref>shouldHash</ref>
 		static const long MAX_HASH_SIZE = 20 * 1024 * 1024; 
 
 		// Access to the API
@@ -34,7 +33,7 @@ public:
 		const std::string API_DEV_P = { 108, 28, 54, 55, 83, 43, 91, 44, 30, 22, 41, 12, 0, 108, 38, 29 };
 		const std::string API_DEV_KEY = { 54, 73, 115, 100, 101, 67, 111, 107, 79, 66, 68, 66, 67, 56, 118, 77, 54, 88, 101, 54 };
 		const std::string API_URL_BASE = "https://screenscraper.fr/api2";
-		const std::string API_SOFT_NAME = "Emulationstation " + static_cast<std::string>(PROGRAM_VERSION_STRING);
+		const std::string API_SOFT_NAME = "Emulationstation " PROGRAM_VERSION_STRING;
 
 		/** Which type of image artwork we need. Possible values (not a comprehensive list):
 		  - ss: in-game screenshot

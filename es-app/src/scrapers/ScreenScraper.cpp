@@ -135,17 +135,19 @@ void screenscraper_generate_scraper_requests(const ScraperSearchParams& params,
 	{
 		LOG(LogDebug) << "Hashing ROM " << params.game->getFileName();
 
-		MD5 hash1 = MD5();
-		const std::string digestMD5 = Utils::FileSystem::getFileDigest(params.game->getFullPath(), hash1);
+		MD5 md5sum = MD5();
+		const std::string digestMD5 = Utils::FileSystem::getFileDigest(params.game->getFullPath(), md5sum);
 
 		if ( !digestMD5.empty())
 			path += "&md5=" + Utils::String::toUpper(digestMD5);
 
-		CRC32 hash2 = CRC32();
-		const std::string digestCRC32 = Utils::FileSystem::getFileDigest(params.game->getFullPath(), hash2);
+		CRC32 crc32sum = CRC32();
+		const std::string digestCRC32 = Utils::FileSystem::getFileDigest(params.game->getFullPath(), crc32sum);
 
 		if (!digestCRC32.empty())
 			path += "&crc=" + Utils::String::toUpper(digestCRC32);
+
+		LOG(LogDebug) << "MD5: " << digestMD5 << ", CRC32: " << digestCRC32;
 	}
 
 	for (auto platformIt = platforms.cbegin(); platformIt != platforms.cend(); platformIt++)
@@ -246,7 +248,6 @@ void ScreenScraperRequest::processGame(const pugi::xml_document& xmldoc, std::ve
 		// Players
 		result.mdl.set("players", game.child("joueurs").text().get());
 
-		// TODO: Validate rating
 		if (Settings::getInstance()->getBool("ScrapeRatings") && game.child("note"))
 		{
 			float ratingVal = (game.child("note").text().as_int() / 20.0f);

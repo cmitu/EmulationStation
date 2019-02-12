@@ -692,7 +692,7 @@ namespace Utils
 			return _hash.getHash();
 		} // getFileDigest
 
-		// Doesn't do path validation, so check before the file is correct.
+		// Doesn't do path validation, so check before the file path is valid.
 		long getFileSize(const std::string& _path)
 		{
 			std::ifstream in(_path, std::ios::ate | std::ios::binary | std::ios::in);
