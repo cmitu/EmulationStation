@@ -322,8 +322,11 @@ void GuiMenu::openUISettings()
 	for (auto it = styles.cbegin(); it != styles.cend(); it++)
 		gamelist_style->add(*it, *it, Settings::getInstance()->getString("GamelistViewStyle") == *it);
 	s->addWithLabel("GAMELIST VIEW STYLE", gamelist_style);
-	s->addSaveFunc([gamelist_style] {
+	s->addSaveFunc([gamelist_style, themeSets] {
 		bool needReload = false;
+
+		// TODO: Check if current theme is compatible with the gamelist view.
+		// gamelist_style->getSelected();
 		if (Settings::getInstance()->getString("GamelistViewStyle") != gamelist_style->getSelected())
 			needReload = true;
 		Settings::getInstance()->setString("GamelistViewStyle", gamelist_style->getSelected());

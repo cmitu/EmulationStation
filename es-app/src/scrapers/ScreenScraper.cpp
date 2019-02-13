@@ -127,11 +127,17 @@ void screenscraper_generate_scraper_requests(const ScraperSearchParams& params,
 
 	ScreenScraperRequest::ScreenScraperConfig ssConfig;
 
-	path = ssConfig.getGameSearchUrl(params.game->getFileName());
-	auto& platforms = params.system->getPlatformIds();
+	// Check if the user has overridden the game/rom name.
+	if (params.nameOverride.empty())
+		path = ssConfig.getGameSearchUrl(params.game->getFileName());
+	else
+		path = ssConfig.getGameSearchUrl(params.nameOverride);
 
-	// Calculate checksum for ROM
-	if (ScreenScraperRequest::shouldHash(params.game)) 
+	auto& platforms = params.system->getPlatformIds();
+	
+	// Calculate checksum for ROM when we use the filename for searching.
+	// Skip hash checking when the user overrides the name, we assume it know the correct name.
+	if (params.nameOverride.empty() && ScreenScraperRequest::shouldHash(params.game))
 	{
 		LOG(LogDebug) << "Hashing ROM " << params.game->getFileName();
 

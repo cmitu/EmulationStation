@@ -293,6 +293,13 @@ std::shared_ptr<IGameListView> ViewController::getGameListView(SystemData* syste
 	if (viewPreference.compare("video") == 0)
 		selectedViewType = VIDEO;
 
+	// Check if the theme supports the Grid view
+	if (!system->getTheme()->hasView("grid") && selectedViewType == GRID)
+	{
+		LOG(LogWarning) << "Grid view not available for theme " << Settings::getInstance()->getString("ThemeSet") << ", switch to automatic";
+		selectedViewType = AUTOMATIC;
+	}
+
 	if (selectedViewType == AUTOMATIC)
 	{
 		std::vector<FileData*> files = system->getRootFolder()->getFilesRecursive(GAME | FOLDER);
