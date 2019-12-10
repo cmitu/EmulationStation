@@ -1,55 +1,86 @@
-# - Try to find VLC library
-# Once done this will define
+
+# CMake module to search for LIBVLC (VLC library)
+# Author: Rohit Yadav <rohityadav89@gmail.com>
 #
-#  VLC_FOUND - system has VLC
-#  VLC_INCLUDE_DIR - The VLC include directory
-#  VLC_LIBRARIES - The libraries needed to use VLC
-#  VLC_DEFINITIONS - Compiler switches required for using VLC
-#
-# Copyright (C) 2008, Tanguy Krotoff <tkrotoff@gmail.com>
-# Copyright (C) 2008, Lukas Durfina <lukas.durfina@gmail.com>
-# Copyright (c) 2009, Fathi Boudra <fboudra@gmail.com>
-#
-# Redistribution and use is allowed according to the terms of the BSD license.
-# For details see the accompanying COPYING-CMAKE-SCRIPTS file.
-#
+# If it's found it sets LIBVLC_FOUND to TRUE
+# and following variables are set:
+#    LIBVLC_INCLUDE_DIR
+#    LIBVLC_LIBRARY
 
-if(VLC_INCLUDE_DIR AND VLC_LIBRARIES)
-   # in cache already
-   set(VLC_FIND_QUIETLY TRUE)
-endif(VLC_INCLUDE_DIR AND VLC_LIBRARIES)
 
-# use pkg-config to get the directories and then use these values
-# in the FIND_PATH() and FIND_LIBRARY() calls
-if(NOT WIN32)
-  find_package(PkgConfig)
-  pkg_check_modules(VLC libvlc>=1.0.0)
-  set(VLC_DEFINITIONS ${VLC_CFLAGS})
-  set(VLC_LIBRARIES ${VLC_LDFLAGS})
-endif(NOT WIN32)
+# FIND_PATH and FIND_LIBRARY normally search standard locations
+# before the specified paths. To search non-standard paths first,
+# FIND_* is invoked first with specified paths and NO_DEFAULT_PATH
+# and then again with no specified paths to search the default
+# locations. When an earlier FIND_* succeeds, subsequent FIND_*s
+# searching for the same item do nothing.
 
-# TODO add argument support to pass version on find_package
-include(MacroEnsureVersion)
-macro_ensure_version(1.0.0 ${VLC_VERSION} VLC_VERSION_OK)
-if(VLC_VERSION_OK)
-  set(VLC_FOUND TRUE)
-  message(STATUS "VLC library found")
-else(VLC_VERSION_OK)
-  set(VLC_FOUND FALSE)
-  message(FATAL_ERROR "VLC library not found")
-endif(VLC_VERSION_OK)
+#Put here path to custom location
+#example: /home/user/vlc/include etc..
+FIND_PATH(LIBVLC_INCLUDE_DIR vlc/vlc.h
+  HINTS "$ENV{LIBVLC_INCLUDE_PATH}"
+  PATHS
+    #Mac OS and Contribs
+    "${CMAKE_CURRENT_SOURCE_DIR}/contribs/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}/contribs/include/vlc"
+    # Env
+    "$ENV{LIB_DIR}/include"
+    "$ENV{LIB_DIR}/include/vlc"
+    #
+    "/usr/include"
+    "/usr/include/vlc"
+    "/usr/local/include"
+    "/usr/local/include/vlc"
+    #mingw
+    c:/msys/local/include
+    # MacOS install dir
+    /Applications/VLC.app/Contents/MacOS/include
+  )
+FIND_PATH(LIBVLC_INCLUDE_DIR PATHS "${CMAKE_INCLUDE_PATH}/vlc" NAMES vlc.h)
 
-find_path(VLC_INCLUDE_DIR
-          NAMES vlc.h
-          PATHS ${VLC_INCLUDE_DIRS}
-          PATH_SUFFIXES vlc)
+#Put here path to custom location
+#example: /home/user/vlc/lib etc..
+FIND_LIBRARY(LIBVLC_LIBRARY NAMES vlc libvlc
+  HINTS "$ENV{LIBVLC_LIBRARY_PATH}"
+  PATHS
+    "$ENV{LIB_DIR}/lib"
+    #Mac OS
+    "${CMAKE_CURRENT_SOURCE_DIR}/contribs/lib"
+    "${CMAKE_CURRENT_SOURCE_DIR}/contribs/plugins"
+    # MacOS install dir
+    /Applications/VLC.app/Contents/MacOS/lib
+    #mingw
+    c:/msys/local/lib
+  )
+FIND_LIBRARY(LIBVLC_LIBRARY NAMES vlc libvlc)
+FIND_LIBRARY(LIBVLCCORE_LIBRARY NAMES vlccore libvlccore
+  HINTS "$ENV{LIBVLC_LIBRARY_PATH}"
+  PATHS
+    "$ENV{LIB_DIR}/lib"
+    #Mac OS
+    "${CMAKE_CURRENT_SOURCE_DIR}/contribs/lib"
+    "${CMAKE_CURRENT_SOURCE_DIR}/contribs/plugins"
+    # MacOS install dir
+    /Applications/VLC.app/Contents/MacOS/lib
+    #mingw
+    c:/msys/local/lib
+  )
+FIND_LIBRARY(LIBVLCCORE_LIBRARY NAMES vlccore libvlccore)
 
-find_library(VLC_LIBRARIES
-             NAMES vlc
-             PATHS ${VLC_LIBRARY_DIRS})
+IF (LIBVLC_INCLUDE_DIR AND LIBVLC_LIBRARY AND LIBVLCCORE_LIBRARY)
+   SET(LIBVLC_FOUND TRUE)
+ENDIF (LIBVLC_INCLUDE_DIR AND LIBVLC_LIBRARY AND LIBVLCCORE_LIBRARY)
 
-include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(VLC DEFAULT_MSG VLC_INCLUDE_DIR VLC_LIBRARIES)
+IF (LIBVLC_FOUND)
+   get_filename_component(LIBVLC_LIB_DIR ${LIBVLC_LIBRARY} PATH)
+   IF (NOT LIBVLC_FIND_QUIETLY)
+      MESSAGE(STATUS "Found LibVLC include-dir path: ${LIBVLC_INCLUDE_DIR}")
+      MESSAGE(STATUS "Found LibVLC library path:${LIBVLC_LIBRARY}")
+      MESSAGE(STATUS "Found LibVLCcore library path:${LIBVLCCORE_LIBRARY}")
+   ENDIF (NOT LIBVLC_FIND_QUIETLY)
+ELSE (LIBVLC_FOUND)
+   IF (LIBVLC_FIND_REQUIRED)
+      MESSAGE(FATAL_ERROR "Could not find LibVLC")
+   ENDIF (LIBVLC_FIND_REQUIRED)
+ENDIF (LIBVLC_FOUND)
 
-# show the VLC_INCLUDE_DIR and VLC_LIBRARIES variables only in the advanced view
-mark_as_advanced(VLC_INCLUDE_DIR VLC_LIBRARIES)
