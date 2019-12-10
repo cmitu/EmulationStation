@@ -2,6 +2,7 @@
 
 #include "AudioManager.h"
 #include "Settings.h"
+#include <string>
 
 bool PowerSaver::mState = false;
 bool PowerSaver::mRunningScreenSaver = false;
