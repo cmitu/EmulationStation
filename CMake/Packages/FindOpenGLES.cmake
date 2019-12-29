@@ -55,14 +55,14 @@ ELSE (WIN32)
 
     ELSE (DEFINED BCMHOST)
 
-      FIND_PATH(OPENGLES_INCLUDE_DIR GLES/gl.h
+      FIND_PATH(OPENGLES_INCLUDE_DIR GLES2/gl2.h
         /usr/openwin/share/include
         /opt/graphics/OpenGL/include /usr/X11R6/include
         /usr/include
       )
 
       FIND_LIBRARY(OPENGLES_gl_LIBRARY
-        NAMES GLES_CM GLESv1_CM
+        NAMES GLESv2
         PATHS /opt/graphics/OpenGL/lib
               /usr/openwin/lib
               /usr/shlib /usr/X11R6/lib
