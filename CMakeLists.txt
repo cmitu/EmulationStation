@@ -5,6 +5,14 @@ option(GL "Set to ON if targeting Desktop OpenGL" ${GL})
 option(RPI "Set to ON to enable the Raspberry PI video player (omxplayer)" ${RPI})
 option(CEC "Set to ON to enable CEC" ${CEC})
 
+# GLES implementation override
+option(USEMESA_GLES "Set to ON to enable the MESA Open GL ES driver" ${MESA_GLES})
+
+# OpenGL library preference (https://cmake.org/cmake/help/git-stage/policy/CMP0072.html)
+if(POLICY CMP0072)
+   cmake_policy(SET CMP0072 NEW)
+ endif()
+ 
 project(emulationstation-all)
 
 #-------------------------------------------------------------------------------
@@ -23,7 +31,7 @@ elseif(GL)
 #-------------------------------------------------------------------------------
 #check if we're running on Raspberry Pi
 elseif(EXISTS "${CMAKE_FIND_ROOT_PATH}/opt/vc/include/bcm_host.h")
-    MESSAGE("bcm_host.h found")
+    MESSAGE(STATUS "bcm_host.h found")
     set(BCMHOST found)
     set(GLSystem "Embedded OpenGL" CACHE STRING "The OpenGL system to be used")
 #-------------------------------------------------------------------------------
@@ -52,8 +60,17 @@ set_property(CACHE GLSystem PROPERTY STRINGS "Desktop OpenGL" "Embedded OpenGL")
 if(${GLSystem} MATCHES "Desktop OpenGL")
     find_package(OpenGL REQUIRED)
 else()
-    find_package(OpenGLES REQUIRED)
+    find_package(OpenGLES2)
+    if(OPENGLES2_FOUND)
+      message(STATUS "Using GLESv2 from ${OPENGLES2_LIBRARIES}")
+      set(OPENGLES_LIBRARIES ${OPENGLES2_LIBRARIES})
+      set(OPENGLES_INCLUDE_DIR ${OPENGLES2_INCLUDE_DIR})
+    else()
+      find_package(OpenGLES REQUIRED)
+      message(STATUS "Using GLES from ${OPENGLES_LIBRARIES}")
+    endif()
 endif()
+
 find_package(Freetype REQUIRED)
 find_package(FreeImage REQUIRED)
 find_package(SDL2 REQUIRED)
@@ -104,19 +121,25 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     endif()
 
     #set up compiler flags for GCC
-if (CMAKE_BUILD_TYPE MATCHES Debug)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wno-attributes -O0") #support C++11 for std::, optimize
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -O0")
-else()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wno-attributes -O2") #support C++11 for std::, optimize
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -O2")  #-s = strip binary
+    if (CMAKE_BUILD_TYPE MATCHES Debug)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wno-attributes -O0") #support C++11 for std::, optimize
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -O0")
+    else()
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wno-attributes -O2") #support C++11 for std::, optimize
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -O2")  #-s = strip binary
+    endif()
 endif()
-endif()
+
+# Enable additional defines for the Debug build configuration
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG")
+set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -D_DEBUG")
 
 if(${GLSystem} MATCHES "Desktop OpenGL")
     add_definitions(-DUSE_OPENGL_21)
-else()
+elseif(OPENGLES2_FOUND)
     add_definitions(-DUSE_OPENGLES_20)
+else()
+    add_definitions(-DUSE_OPENGLES_10)
 endif()
 
 #-------------------------------------------------------------------------------
@@ -148,11 +171,8 @@ endif()
 
 if(DEFINED BCMHOST)
     LIST(APPEND COMMON_INCLUDE_DIRS
-        "${CMAKE_FIND_ROOT_PATH}/opt/vc/include"
-        "${CMAKE_FIND_ROOT_PATH}/opt/vc/include/interface/vcos"
-        "${CMAKE_FIND_ROOT_PATH}/opt/vc/include/interface/vmcs_host/linux"
-        "${CMAKE_FIND_ROOT_PATH}/opt/vc/include/interface/vcos/pthreads"
-    )
+        "${OPENGLES_INCLUDE_DIR}"
+      )
 #add include directory for Vero4K
 elseif(DEFINED VERO4K)
     LIST(APPEND COMMON_INCLUDE_DIRS
@@ -172,11 +192,7 @@ endif()
 
 #-------------------------------------------------------------------------------
 #define libraries and directories
-if(DEFINED BCMHOST)
-    link_directories(
-        "${CMAKE_FIND_ROOT_PATH}/opt/vc/lib"
-    )
-elseif(DEFINED VERO4K)
+if(DEFINED VERO4K)
     link_directories(
         "${CMAKE_FIND_ROOT_PATH}/opt/vero3/lib"
     )
@@ -212,13 +228,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     )
 endif()
 
-if(DEFINED BCMHOST)
-    LIST(APPEND COMMON_LIBRARIES
-        bcm_host
-        brcmEGL
-        ${OPENGLES_LIBRARIES}
-    )
-elseif(DEFINED VERO4K)
+if(DEFINED VERO4K)
     LIST(APPEND COMMON_LIBRARIES
         EGL
         ${OPENGLES_LIBRARIES}
@@ -235,11 +245,13 @@ else()
         )
     else()
         LIST(APPEND COMMON_LIBRARIES
-            EGL
             ${OPENGLES_LIBRARIES}
         )
     endif()
 endif()
+
+# Debug settings
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG")
 
 #-------------------------------------------------------------------------------
 # set up build directories
