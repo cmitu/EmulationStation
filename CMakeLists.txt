@@ -116,7 +116,7 @@ endif()
 if(${GLSystem} MATCHES "Desktop OpenGL")
     add_definitions(-DUSE_OPENGL_21)
 else()
-    add_definitions(-DUSE_OPENGLES_10)
+    add_definitions(-DUSE_OPENGLES_20)
 endif()
 
 # Enable additional defines for the Debug build configuration
