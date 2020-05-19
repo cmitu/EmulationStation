@@ -48,6 +48,7 @@ const std::map<PlatformId, std::string> gamesdb_new_platformid_map{
 	{ ATARI_LYNX, "4924" },
 	{ ATARI_ST, "4937" },
 	{ ATARI_XE, "30" },
+	{ BBC_MICRO, "4954"}, // Acorn Electron
 	{ COLECOVISION, "31" },
 	{ COMMODORE_64, "40" },
 	{ INTELLIVISION, "32" },

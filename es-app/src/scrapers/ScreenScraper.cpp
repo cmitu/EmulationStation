@@ -31,6 +31,7 @@ const std::map<PlatformId, unsigned short> screenscraper_platformid_map{
 	{ ATARI_LYNX, 28 },
 	{ ATARI_ST, 42},
 	// missing Atari XE ?
+	{ BBC_MICRO, 37},
 	{ COLECOVISION, 48 },
 	{ COMMODORE_64, 66 },
 	{ INTELLIVISION, 115 },
@@ -66,6 +67,7 @@ const std::map<PlatformId, unsigned short> screenscraper_platformid_map{
 	{ SEGA_SATURN, 22 },
 	{ SEGA_SG1000, 109 },
 	{ SHARP_X6800, 79},
+	{ THOMSON_MOTO, 141},
 	{ PLAYSTATION, 57 },
 	{ PLAYSTATION_2, 58 },
 	{ PLAYSTATION_3, 59 },

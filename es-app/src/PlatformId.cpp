@@ -21,6 +21,7 @@ namespace PlatformIds
 		"atarijaguar",
 		"atarijaguarcd",
 		"atarixe",
+		"bbcmicro",
 		"colecovision",
 		"c64", // commodore 64
 		"intellivision",
@@ -63,6 +64,7 @@ namespace PlatformIds
 		"snes", // super nintendo entertainment system
 		"scummvm",
 		"x6800",
+		"moto",	// thomson mo/to
 		"pcengine", // (aka turbografx-16) HuCards only
 		"pcenginecd", // (aka turbografx-16) CD-ROMs only
 		"wonderswan",

@@ -22,6 +22,7 @@ namespace PlatformIds
 		ATARI_JAGUAR,
 		ATARI_JAGUAR_CD,
 		ATARI_XE,
+		BBC_MICRO,
 		COLECOVISION,
 		COMMODORE_64,
 		INTELLIVISION,
@@ -64,6 +65,7 @@ namespace PlatformIds
 		SUPER_NINTENDO,
 		SCUMMVM,
 		SHARP_X6800,
+		THOMSON_MOTO,
 		TURBOGRAFX_16, // (aka PC Engine) HuCards only
 		TURBOGRAFX_CD, // (aka PC Engine) CD-ROMs only
 		WONDERSWAN,
