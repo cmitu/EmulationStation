@@ -1,0 +1,31 @@
+name: macOS CI
+on:
+  push:
+    branches: [ macos ]
+
+jobs:
+  build:
+    runs-on: macos-latest
+    env: 
+      xcode.version: 10.3
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Get Dependencies (macOS)
+        run: |
+          brew install cmake libsdl2 freetype curl
+          brew cask install vlc
+          sudo xcode-select -switch /Applications/Xcode_${{ xcode.version }}.app
+          echo "::set-env name=CC::clang"
+          echo "::set-env name=CXX::clang++"
+      - name: CMake gen
+        run: |
+          mkdir build
+          cmake -B build .
+      - name: Compile
+        run: cmake --build build
+        
+    
+      
+    
