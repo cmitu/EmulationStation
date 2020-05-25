@@ -1,16 +1,10 @@
 name: macOS CI
-
-# Controls when the action will run. Triggers the workflow on push or pull request
-# events but only for the master branch
 on:
   push:
     branches: [ macos ]
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
   build:
-    # The type of runner that the job will run on
     runs-on: macos-latest
     env: 
       xcode.version: 10.3
@@ -18,7 +12,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      # Runs a single command using the runners shell
       - name: Get Dependencies (macOS)
         run: |
           brew install cmake libsdl2 freetype curl
@@ -31,7 +24,7 @@ jobs:
           mkdir build
           cmake -B build .
       - name: Compile
-          cmake --build build
+        run: cmake --build build
         
     
       
