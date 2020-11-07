@@ -77,6 +77,9 @@ std::string DateTimeComponent::getDisplayString() const
 
 void DateTimeComponent::render(const Transform4x4f& parentTrans)
 {
+    #ifdef TRACY_ENABLE
+          ZoneScopedNC("GuiComponent::render",tracy::Color::DarkSeaGreen)
+    #endif
 	TextComponent::render(parentTrans);
 }
 

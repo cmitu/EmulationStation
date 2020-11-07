@@ -4,6 +4,10 @@
 
 #include "math/Vector2f.h"
 
+#ifdef TRACY_ENABLE
+#include "Tracy.hpp"
+#endif
+
 class  Transform4x4f;
 class  Vector2i;
 struct SDL_Window;

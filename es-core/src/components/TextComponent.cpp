@@ -4,6 +4,10 @@
 #include "Log.h"
 #include "Settings.h"
 
+#ifdef TRACE_ENABLE
+#include "Tracy.hpp"
+#endif
+
 TextComponent::TextComponent(Window* window) : GuiComponent(window),
 	mFont(Font::get(FONT_SIZE_MEDIUM)), mUppercase(false), mColor(0x000000FF), mAutoCalcExtent(true, true),
 	mHorizontalAlignment(ALIGN_LEFT), mVerticalAlignment(ALIGN_CENTER), mLineSpacing(1.5f), mBgColor(0),
@@ -94,9 +98,14 @@ void TextComponent::setUppercase(bool uppercase)
 
 void TextComponent::render(const Transform4x4f& parentTrans)
 {
+    #ifdef TRACY_ENABLE
+      ZoneScopedNC("TextComponent:::render",tracy::Color::DarkSeaGreen)
+    #endif       
 	if (!isVisible())
 		return;
-
+    #ifdef TRACY_ENABLE
+     TracyMessageL(mText.c_str())
+    #endif
 	Transform4x4f trans = parentTrans * getTransform();
 
 	if (mRenderBackground)

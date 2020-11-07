@@ -40,6 +40,7 @@ namespace Renderer
 	{
 		// vertex shader
 		const GLchar* vertexSource =
+               "#version 100\n"
 			"uniform   mat4 u_mvp; \n"
 			"attribute vec2 a_pos; \n"
 			"attribute vec2 a_tex; \n"
@@ -88,6 +89,7 @@ namespace Renderer
 
 		// fragment shader
 		const GLchar* fragmentSource =
+               "#version 100\n"
 			"precision highp float;     \n"
 			"uniform   sampler2D u_tex; \n"
 			"varying   vec2      v_tex; \n"
@@ -189,6 +191,7 @@ namespace Renderer
 
 	static GLenum convertBlendFactor(const Blend::Factor _blendFactor)
 	{
+        
 		switch(_blendFactor)
 		{
 			case Blend::ZERO:                { return GL_ZERO;                } break;
@@ -264,7 +267,6 @@ namespace Renderer
 		LOG(LogInfo) << "GL renderer: " << renderer;
 		LOG(LogInfo) << "GL version:  " << version;
 		LOG(LogInfo) << "Checking available OpenGL extensions...";
-		std::string glExts = glGetString(GL_EXTENSIONS) ? (const char*)glGetString(GL_EXTENSIONS) : "";
 		LOG(LogInfo) << " ARB_texture_non_power_of_two: " << (extensions.find("ARB_texture_non_power_of_two") != std::string::npos ? "ok" : "MISSING");
 
 		setupShaders();
@@ -290,9 +292,14 @@ namespace Renderer
 
 	unsigned int createTexture(const Texture::Type _type, const bool _linear, const bool _repeat, const unsigned int _width, const unsigned int _height, void* _data)
 	{
+        #ifdef TRACY_ENABLE
+          ZoneScopedNC( "GLES2Renderer::CreateTexture", tracy::Color::DarkOrange )
+        #endif
+
 		const GLenum type = convertTextureType(_type);
 		unsigned int texture;
 
+       
 		GL_CHECK_ERROR(glGenTextures(1, &texture));
 		GL_CHECK_ERROR(glBindTexture(GL_TEXTURE_2D, texture));
 
@@ -306,6 +313,11 @@ namespace Renderer
 		// Create a GL_LUMINANCE_ALPHA texture instead so its white + alpha
 		if(type == GL_LUMINANCE_ALPHA)
 		{
+
+            #ifdef TRACY_ENABLE
+            ZoneScopedNC("GLES2Renderer::CreateTexture::GL_LUMINANCE_ALPHA", tracy::Color::Orange);
+            #endif
+            
 			uint8_t* a_data  = (uint8_t*)_data;
 			uint8_t* la_data = new uint8_t[_width * _height * 2];
 			for(uint32_t i=0; i<(_width * _height); ++i)
@@ -329,20 +341,30 @@ namespace Renderer
 
 	void destroyTexture(const unsigned int _texture)
 	{
+        #ifdef TRACY_ENABLE
+          ZoneScopedNC( "GLES2Renderer::DestroyTexture", tracy::Color::DarkOrange )
+        #endif
 		GL_CHECK_ERROR(glDeleteTextures(1, &_texture));
 
 	} // destroyTexture
 
 	void updateTexture(const unsigned int _texture, const Texture::Type _type, const unsigned int _x, const unsigned _y, const unsigned int _width, const unsigned int _height, void* _data)
 	{
+        #ifdef TRACY_ENABLE
+          ZoneScopedNC( "GLES2Renderer::UpdateTexture",tracy::Color::DarkOrange )
+          ZoneValue(_type);
+        #endif
 		const GLenum type = convertTextureType(_type);
 
 		GL_CHECK_ERROR(glBindTexture(GL_TEXTURE_2D, _texture));
-
+        
 		// Regular GL_ALPHA textures are black + alpha in shaders
 		// Create a GL_LUMINANCE_ALPHA texture instead so its white + alpha
 		if(type == GL_LUMINANCE_ALPHA)
 		{
+            #ifdef TRACY_ENABLE
+            ZoneScopedNC("GLES2Renderer::UpdateTexture::GL_LUMINANCE_ALPHA", tracy::Color::Orange )
+            #endif
 			uint8_t* a_data  = (uint8_t*)_data;
 			uint8_t* la_data = new uint8_t[_width * _height * 2];
 			for(uint32_t i=0; i<(_width * _height); ++i)
@@ -366,6 +388,9 @@ namespace Renderer
 
 	void bindTexture(const unsigned int _texture)
 	{
+          #ifdef TRACY_ENABLE
+          ZoneScopedNC( "GLES2Renderer::BindTexture",tracy::Color::DarkOrange  )
+          #endif
 		if(_texture == 0) GL_CHECK_ERROR(glBindTexture(GL_TEXTURE_2D, whiteTexture));
 		else              GL_CHECK_ERROR(glBindTexture(GL_TEXTURE_2D, _texture));
 
@@ -373,6 +398,9 @@ namespace Renderer
 
 	void drawLines(const Vertex* _vertices, const unsigned int _numVertices, const Blend::Factor _srcBlendFactor, const Blend::Factor _dstBlendFactor)
 	{
+        #ifdef TRACY_ENABLE
+          ZoneScopedNC( "GLES2Renderer::DrawLines",tracy::Color::DarkOrange )
+        #endif
 		GL_CHECK_ERROR(glVertexAttribPointer(posAttrib, 2, GL_FLOAT,         GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, pos)));
 		GL_CHECK_ERROR(glVertexAttribPointer(texAttrib, 2, GL_FLOAT,         GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, tex)));
 		GL_CHECK_ERROR(glVertexAttribPointer(colAttrib, 4, GL_UNSIGNED_BYTE, GL_TRUE,  sizeof(Vertex), (const void*)offsetof(Vertex, col)));
@@ -386,14 +414,36 @@ namespace Renderer
 
 	void drawTriangleStrips(const Vertex* _vertices, const unsigned int _numVertices, const Blend::Factor _srcBlendFactor, const Blend::Factor _dstBlendFactor)
 	{
+        #ifdef TRACY_ENABLE
+          ZoneScopedNC("GLES2Renderer::drawTriangleStrips",tracy::Color::DarkOrange)
+        #endif
 		GL_CHECK_ERROR(glVertexAttribPointer(posAttrib, 2, GL_FLOAT,         GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, pos)));
 		GL_CHECK_ERROR(glVertexAttribPointer(texAttrib, 2, GL_FLOAT,         GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, tex)));
 		GL_CHECK_ERROR(glVertexAttribPointer(colAttrib, 4, GL_UNSIGNED_BYTE, GL_TRUE,  sizeof(Vertex), (const void*)offsetof(Vertex, col)));
+        
+        {
+            #ifdef TRACY_ENABLE
+            ZoneScopedNC("glBufferData", tracy::Color::Orange)
+            ZoneValue(_numVertices);
+            #endif  
+            GL_CHECK_ERROR(glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * _numVertices, _vertices, GL_DYNAMIC_DRAW));
+        }
+        { 
+            #ifdef TRACY_ENABLE
+            ZoneScopedNC("glBlendFunc", tracy::Color::Orange)
+            #endif  
+            GL_CHECK_ERROR(glBlendFunc(convertBlendFactor(_srcBlendFactor), convertBlendFactor(_dstBlendFactor)));
+        
+        }
+        
+        { 
+            #ifdef TRACY_ENABLE
+            ZoneScopedNC("glDrawArrays", tracy::Color::Orange)
+            #endif
+            GL_CHECK_ERROR(glDrawArrays(GL_TRIANGLE_STRIP, 0, _numVertices));
+        }
+       
 
-		GL_CHECK_ERROR(glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * _numVertices, _vertices, GL_DYNAMIC_DRAW));
-		GL_CHECK_ERROR(glBlendFunc(convertBlendFactor(_srcBlendFactor), convertBlendFactor(_dstBlendFactor)));
-
-		GL_CHECK_ERROR(glDrawArrays(GL_TRIANGLE_STRIP, 0, _numVertices));
 
 	} // drawTriangleStrips
 
@@ -408,6 +458,9 @@ namespace Renderer
 
 	void setMatrix(const Transform4x4f& _matrix)
 	{
+        #ifdef TRACY_ENABLE
+          ZoneScopedNC("GLES2Renderer::setMatrix",tracy::Color::DarkOrange)
+        #endif        
 		worldViewMatrix = _matrix;
 		worldViewMatrix.round();
 
@@ -425,6 +478,9 @@ namespace Renderer
 
 	void setScissor(const Rect& _scissor)
 	{
+        #ifdef TRACY_ENABLE
+          ZoneScopedNC("GLES2Renderer::setScissor",tracy::Color::DarkOrange)         
+        #endif
 		if((_scissor.x == 0) && (_scissor.y == 0) && (_scissor.w == 0) && (_scissor.h == 0))
 		{
 			GL_CHECK_ERROR(glDisable(GL_SCISSOR_TEST));
@@ -452,13 +508,17 @@ namespace Renderer
 			if(SDL_GL_SetSwapInterval(1) != 0 && SDL_GL_SetSwapInterval(-1) != 0)
 				LOG(LogWarning) << "Tried to enable vsync, but failed! (" << SDL_GetError() << ")";
 		}
-		else
+		else {
 			SDL_GL_SetSwapInterval(0);
-
+            LOG(LogInfo) << "Vsync disabled";
+        }
 	} // setSwapInterval
 
 	void swapBuffers()
 	{
+      #ifdef TRACY_ENABLE
+      ZoneScopedNC( "GLES2Renderer::SwapBuffers", tracy::Color::DarkOrange )
+      #endif
 		SDL_GL_SwapWindow(getSDLWindow());
 		GL_CHECK_ERROR(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 

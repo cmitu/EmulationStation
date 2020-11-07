@@ -9,6 +9,10 @@
 #include <Windows.h>
 #endif
 
+#ifdef TRACY_ENABLE
+#include "Tracy.hpp"
+#endif
+
 FT_Library Font::sLibrary = NULL;
 
 int Font::getSize() const { return mSize; }
@@ -399,6 +403,10 @@ void Font::rebuildTextures()
 
 void Font::renderTextCache(TextCache* cache)
 {
+    #ifdef TRACY_ENABLE
+      ZoneScopedN("Font::renderTextCache")          
+    #endif   
+    
 	if(cache == NULL)
 	{
 		LOG(LogError) << "Attempted to draw NULL TextCache!";

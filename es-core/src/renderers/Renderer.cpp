@@ -60,7 +60,6 @@ namespace Renderer
 	static bool createWindow()
 	{
 		LOG(LogInfo) << "Creating window...";
-
 		if(SDL_Init(SDL_INIT_VIDEO) != 0)
 		{
 			LOG(LogError) << "Error initializing SDL!\n	" << SDL_GetError();
@@ -238,6 +237,9 @@ namespace Renderer
 
 	void drawRect(const float _x, const float _y, const float _w, const float _h, const unsigned int _color, const unsigned int _colorEnd, bool horizontalGradient, const Blend::Factor _srcBlendFactor, const Blend::Factor _dstBlendFactor)
 	{
+        #ifdef TRACY_ENABLE
+          ZoneScopedNC( "Renderer:drawRect", tracy::Color::CornflowerBlue )
+        #endif
 		const unsigned int color    = convertColor(_color);
 		const unsigned int colorEnd = convertColor(_colorEnd);
 		Vertex             vertices[4];

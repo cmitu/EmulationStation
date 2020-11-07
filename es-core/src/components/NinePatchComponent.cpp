@@ -92,6 +92,10 @@ void NinePatchComponent::buildVertices()
 
 void NinePatchComponent::render(const Transform4x4f& parentTrans)
 {
+    #ifdef TRACY_ENABLE
+      ZoneScopedNC("NinePatchComponent::render",tracy::Color::DarkSeaGreen);
+    #endif
+
 	if (!isVisible())
 		return;
 

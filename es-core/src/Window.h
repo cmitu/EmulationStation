@@ -6,6 +6,10 @@
 #include "InputConfig.h"
 #include "Settings.h"
 
+#ifdef TRACY_ENABLE
+#include "Tracy.hpp"
+#endif
+
 #include <memory>
 
 class FileData;

@@ -131,9 +131,12 @@ void VideoVlcComponent::resize()
 
 void VideoVlcComponent::render(const Transform4x4f& parentTrans)
 {
+    #ifdef TRACY_ENABLE
+      ZoneScopedNC("VideoVlcComponent::render", tracy::Color::DarkSeaGreen)          
+    #endif
+
 	if (!isVisible())
 		return;
-
 	VideoComponent::render(parentTrans);
 	Transform4x4f trans = parentTrans * getTransform();
 	GuiComponent::renderChildren(trans);
@@ -158,6 +161,7 @@ void VideoVlcComponent::render(const Transform4x4f& parentTrans)
 		mTexture->initFromPixels((unsigned char*)mContext.surface->pixels, mContext.surface->w, mContext.surface->h);
 		mTexture->bind();
 
+    
 		// Render it
 		Renderer::drawTriangleStrips(&vertices[0], 4);
 	}

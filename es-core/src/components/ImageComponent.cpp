@@ -319,6 +319,10 @@ void ImageComponent::updateColors()
 
 void ImageComponent::render(const Transform4x4f& parentTrans)
 {
+    #ifdef TRACY_ENABLE
+      ZoneScopedNC("ImageComponent::render",tracy::Color::DarkSeaGreen);
+    #endif
+
 	if (!isVisible())
 		return;
 

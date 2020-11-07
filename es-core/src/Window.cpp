@@ -205,11 +205,12 @@ void Window::update(int deltaTime)
 		if(Settings::getInstance()->getBool("DrawFramerate"))
 		{
 			std::stringstream ss;
-
+ 
 			// fps
 			ss << std::fixed << std::setprecision(1) << (1000.0f * (float)mFrameCountElapsed / (float)mFrameTimeElapsed) << "fps, ";
 			ss << std::fixed << std::setprecision(2) << ((float)mFrameTimeElapsed / (float)mFrameCountElapsed) << "ms";
-
+            LOG(LogInfo) << ss.str();
+            
 			// vram
 			float textureVramUsageMb = TextureResource::getTotalMemUsage() / 1000.0f / 1000.0f;
 			float textureTotalUsageMb = TextureResource::getTotalTextureSize() / 1000.0f / 1000.0f;
@@ -218,6 +219,7 @@ void Window::update(int deltaTime)
 			ss << "\nFont VRAM: " << fontVramUsageMb << " Tex VRAM: " << textureVramUsageMb <<
 				  " Tex Max: " << textureTotalUsageMb;
 			mFrameDataText = std::unique_ptr<TextCache>(mDefaultFonts.at(1)->buildTextCache(ss.str(), 50.f, 50.f, 0xFF00FFFF));
+            
 		}
 
 		mFrameTimeElapsed = 0;
@@ -236,6 +238,9 @@ void Window::update(int deltaTime)
 
 void Window::render()
 {
+    #ifdef TRACY_ENABLE
+    ZoneScopedNC( "Window::Render",tracy::Color::MediumSlateBlue)
+    #endif
 	Transform4x4f transform = Transform4x4f::Identity();
 
 	mRenderedHelpPrompts = false;

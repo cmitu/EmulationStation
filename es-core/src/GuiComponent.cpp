@@ -8,6 +8,10 @@
 #include "Window.h"
 #include <algorithm>
 
+#ifdef TRACY_ENABLE
+#include "Tracy.hpp"
+#endif
+
 GuiComponent::GuiComponent(Window* window) : mWindow(window), mParent(NULL), mOpacity(255),
 	mPosition(Vector3f::Zero()), mOrigin(Vector2f::Zero()), mRotationOrigin(0.5, 0.5),
 	mSize(Vector2f::Zero()), mTransform(Transform4x4f::Identity()), mIsProcessing(false), mVisible(true)
@@ -62,6 +66,10 @@ void GuiComponent::update(int deltaTime)
 
 void GuiComponent::render(const Transform4x4f& parentTrans)
 {
+    #ifdef TRACY_ENABLE
+          ZoneScopedNC("GuiComponent::render",tracy::Color::DarkSeaGreen)
+    #endif
+    
 	if (!isVisible())
 		return;
 

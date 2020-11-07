@@ -17,6 +17,7 @@
 #include "SystemData.h"
 #include "SystemScreenSaver.h"
 #include <SDL_events.h>
+#include <SDL_log.h>
 #include <SDL_main.h>
 #include <SDL_timer.h>
 #include <iostream>
@@ -247,10 +248,15 @@ void onExit()
 
 int main(int argc, char* argv[])
 {
+    #ifdef TRACY_ENABLE
+        ZoneScopedNC( "Main", tracy::Color::DarkSlateBlue )
+    #endif
+
 	srand((unsigned int)time(NULL));
-
 	std::locale::global(std::locale("C"));
-
+    SDL_LogSetPriority(SDL_LOG_CATEGORY_VIDEO, SDL_LOG_PRIORITY_INFO);
+    SDL_LogSetPriority(SDL_LOG_CATEGORY_RENDER, SDL_LOG_PRIORITY_DEBUG);
+        
 	if(!parseArgs(argc, argv))
 		return 0;
 

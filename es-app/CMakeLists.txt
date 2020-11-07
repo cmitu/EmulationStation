@@ -113,6 +113,9 @@ set(ES_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/views/UIModeController.cpp
 )
 
+
+# Add Tracy library
+set( TRACY_SOURCES ${CMAKE_SOURCE_DIR}/tracy/TracyClient.cpp )
 #-------------------------------------------------------------------------------
 # define OS specific sources and headers
 if(MSVC)
@@ -124,7 +127,7 @@ endif()
 #-------------------------------------------------------------------------------
 # define target
 include_directories(${COMMON_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/src)
-add_executable(emulationstation ${ES_SOURCES} ${ES_HEADERS})
+add_executable(emulationstation ${ES_SOURCES} ${TRACY_SOURCES} ${ES_HEADERS})
 target_link_libraries(emulationstation ${COMMON_LIBRARIES} es-core)
 
 # special properties for Windows builds

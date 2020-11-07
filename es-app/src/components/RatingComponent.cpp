@@ -104,6 +104,9 @@ void RatingComponent::updateColors()
 
 void RatingComponent::render(const Transform4x4f& parentTrans)
 {
+    #ifdef TRACY_ENABLE
+      ZoneScopedN("RatingComponent::render")          
+    #endif    
 	if (!isVisible())
 		return;
 

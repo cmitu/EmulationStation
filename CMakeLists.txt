@@ -252,6 +252,12 @@ set(LIBRARY_OUTPUT_PATH ${dir} CACHE PATH "Build directory" FORCE)
 #-------------------------------------------------------------------------------
 # add each component
 
+IF(TRACY_ENABLE)
+    add_definitions(-DTRACY_ENABLE)
+    LIST(APPEND COMMON_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/tracy")
+    LIST(APPEND COMMON_LIBRARIES dl)
+endif()
+
 add_subdirectory("external")
 add_subdirectory("es-core")
 add_subdirectory("es-app")
