@@ -35,8 +35,8 @@ FIND_PATH(LIBVLC_INCLUDE_DIR vlc/vlc.h
     c:/msys/local/include
     # MacOS install dir
     /Applications/VLC.app/Contents/MacOS/include
+    "$ENV{HOME}/Applications/VLC.App/Contents/MacOS/include"
   )
-FIND_PATH(LIBVLC_INCLUDE_DIR PATHS "${CMAKE_INCLUDE_PATH}/vlc" NAMES vlc.h)
 
 #Put here path to custom location
 #example: /home/user/vlc/lib etc..
@@ -49,10 +49,23 @@ FIND_LIBRARY(LIBVLC_LIBRARY NAMES vlc libvlc
     "${CMAKE_CURRENT_SOURCE_DIR}/contribs/plugins"
     # MacOS install dir
     /Applications/VLC.app/Contents/MacOS/lib
+    "$ENV{HOME}/Applications/VLC.App/Contents/MacOS/lib"
     #mingw
     c:/msys/local/lib
   )
-FIND_LIBRARY(LIBVLC_LIBRARY NAMES vlc libvlc)
+FIND_LIBRARY(LIBVLC_LIBRARY NAMES vlc libvlc
+    HINTS "$ENV{LIBVLC_LIBRARY_PATH}"
+    PATHS
+      "$ENV{LIB_DIR}/lib"
+      #Mac OS
+      "${CMAKE_CURRENT_SOURCE_DIR}/contribs/lib"
+      "${CMAKE_CURRENT_SOURCE_DIR}/contribs/plugins"
+      # MacOS install dir
+      /Applications/VLC.app/Contents/MacOS/lib
+      "$ENV{HOME}/Applications/VLC.App/Contents/MacOS/lib"
+      #mingw
+      c:/msys/local/lib
+)
 FIND_LIBRARY(LIBVLCCORE_LIBRARY NAMES vlccore libvlccore
   HINTS "$ENV{LIBVLC_LIBRARY_PATH}"
   PATHS
@@ -62,10 +75,10 @@ FIND_LIBRARY(LIBVLCCORE_LIBRARY NAMES vlccore libvlccore
     "${CMAKE_CURRENT_SOURCE_DIR}/contribs/plugins"
     # MacOS install dir
     /Applications/VLC.app/Contents/MacOS/lib
+    "$ENV{HOME}/Applications/VLC.App/Contents/MacOS/lib"
     #mingw
     c:/msys/local/lib
   )
-FIND_LIBRARY(LIBVLCCORE_LIBRARY NAMES vlccore libvlccore)
 
 IF (LIBVLC_INCLUDE_DIR AND LIBVLC_LIBRARY AND LIBVLCCORE_LIBRARY)
    SET(LIBVLC_FOUND TRUE)
@@ -77,6 +90,8 @@ IF (LIBVLC_FOUND)
       MESSAGE(STATUS "Found LibVLC include-dir path: ${LIBVLC_INCLUDE_DIR}")
       MESSAGE(STATUS "Found LibVLC library path:${LIBVLC_LIBRARY}")
       MESSAGE(STATUS "Found LibVLCcore library path:${LIBVLCCORE_LIBRARY}")
+      SET(VLC_LIBRARIES ${LIBVLC_LIBRARY};${LIBVLCCORE_LIBRARY})
+      SET(VLC_INCLUDE_DIR ${LIBVLC_INCLUDE_DIR})
    ENDIF (NOT LIBVLC_FIND_QUIETLY)
 ELSE (LIBVLC_FOUND)
    IF (LIBVLC_FIND_REQUIRED)
