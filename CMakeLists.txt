@@ -70,7 +70,7 @@ set_property(CACHE GLSystem PROPERTY STRINGS "Desktop OpenGL" "Embedded OpenGL")
 
 if(${GLSystem} MATCHES "Desktop OpenGL")
     find_package(OpenGL REQUIRED)
-    add_definitions(-DUSE_OPENGL_14)
+    add_definitions(-DUSE_OPENGL_21)
 else()
     if(NOT USE_GLES1)
         find_package(OpenGLES2 QUIET REQUIRED)
@@ -248,7 +248,6 @@ set(LIBRARY_OUTPUT_PATH ${dir} CACHE PATH "Build directory" FORCE)
 
 #-------------------------------------------------------------------------------
 # add each component
-
-add_subdirectory("external")
+add_subdirectory("external" EXCLUDE_FROM_ALL)
 add_subdirectory("es-core")
 add_subdirectory("es-app")
