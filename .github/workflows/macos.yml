@@ -8,7 +8,14 @@ jobs:
   build_dmg:
     name: build macOS
     runs-on: macos-10.15
+    env:
+       MACOSX_DEPLOYMENT_TARGET: 10.14
+
     steps:
+      - name: Select XCode 10
+        run: |
+          sudo xcode-select -s "/Applications/Xcode_10.3.app"
+          
       - name: Checkout sources
         uses: actions/checkout@v2
         with:
@@ -20,22 +27,38 @@ jobs:
           brew install freeimage freetype sdl2 rapidjson
           brew cask install vlc
 
-      - name: Configure
+      - name: Configure build
         run: |
           mkdir build
           cmake -B build -S .
 
-      - name: Build
+      - name: Build package
         run: |
-          cmake --build build -- VERBOSE=1
+          cmake --build build -- VERBOSE=1 -j2
 
       - name: Create install bundle
         working-directory: ${{github.workspace}}/build
         run: |
           cpack -G DragNDrop -V
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v2
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          name: EmulationStation.dmg
-          path: ${{github.workspace}}/build/EmulationStation.dmg
+          tag_name: master
+          release_name: MacOS CI
+          draft: false
+          prerelease: true
+
+      - name: Upload Release
+        id: upload-release-asset 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{github.workspace}}/build/EmulationStation.dmg
+          asset_name: EmulationStation.dmg
+          asset_content_type: application/octet-stream
