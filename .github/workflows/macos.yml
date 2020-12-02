@@ -34,7 +34,7 @@ jobs:
 
       - name: Build package
         run: |
-          cmake --build build -- VERBOSE=1 -j2
+          cmake --build build -- VERBOSE=1 -j1
 
       - name: Create install bundle
         working-directory: ${{github.workspace}}/build
