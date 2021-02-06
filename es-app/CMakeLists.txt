@@ -172,10 +172,16 @@ IF(LINUX)
 
     SET(CPACK_GENERATOR "TGZ;DEB")
 ELSEIF(APPLE)
-    # Create an .app bundle on macOS
-    set(APP_NAME emulationstation)
-    
-    # Add resources folder as sources
+    set(APP_NAME EmulationStation)
+
+    # When not creating a DMG installer, create the application bundle in the build dir
+    IF(NOT(BUILD_MACOS_DMG))
+        IF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+            SET(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/macos" CACHE PATH "macOS local install" FORCE)
+        ENDIF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    ENDIF()
+
+    # Add resources folder to application bundle
     file(GLOB ES_RES 
         "${CMAKE_SOURCE_DIR}/resources/*.ttf"
         "${CMAKE_SOURCE_DIR}/resources/*.svg"
@@ -184,16 +190,17 @@ ELSEIF(APPLE)
 
     SET_TARGET_PROPERTIES(emulationstation PROPERTIES
         MACOSX_BUNDLE ON
-        MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/resources/macos/Info.plist.in
-        MACOSX_BUNDLE_BUNDLE_NAME EmulationStation
-        MACOSX_BUNDLE_GUI_IDENTIFIER org.emulationstation.EmulationStation
-        MACOSX_BUNDLE_EXECUTABLE_NAME emulationstation
+        MACOSX_BUNDLE_INFO_PLIST "${CMAKE_SOURCE_DIR}/resources/macos/Info.plist.in"
+        MACOSX_BUNDLE_BUNDLE_NAME ${APP_NAME}
+        MACOSX_BUNDLE_GUI_IDENTIFIER org.emulationstation.${APP_NAME}
+        MACOSX_BUNDLE_EXECUTABLE_NAME ${APP_NAME}
         MACOSX_BUNDLE_SHORT_VERSION_STRING 2.10.0rp-dev
         MACOSX_BUNDLE_INFO_STRING "EmulationStation 2.10.0rp-dev"
+        OUTPUT_NAME ${APP_NAME}
     )
 
     # Get a list of paths to search for bundle dependencies
-    get_target_property(targtDeps ${APP_NAME} LINK_LIBRARIES) 
+    get_target_property(targtDeps emulationstation LINK_LIBRARIES)
     set(depDirs )
     foreach(dep ${COMMON_LIBRARIES})
         get_filename_component(dir ${dep} DIRECTORY)
@@ -203,14 +210,14 @@ ELSEIF(APPLE)
     endforeach()
 
     # Install binaries into the bundle
-    install(TARGETS ${APP_NAME}
+    install(TARGETS emulationstation
         BUNDLE DESTINATION . COMPONENT Runtime
         RUNTIME DESTINATION bin COMPONENT Runtime
     )
     # Install runtime resources
     install(
         FILES ${ES_RES}
-        DESTINATION "./${APP_NAME}.app/Contents/Resources"
+        DESTINATION "${APP_NAME}.app/Contents/Resources"
     )
 
     # Fixup dependencies
@@ -219,9 +226,11 @@ ELSEIF(APPLE)
         fixup_bundle(\"\${CMAKE_INSTALL_PREFIX}/${APP_NAME}.app\" \"\" \"${depDirs}\")"
     )
 
-    # Pack the application
-    set(CPACK_GENERATOR "DRAGNDROP")
-    set(CPACK_PACKAGE_FILE_NAME "EmulationStation")
-
+    # Pack the application when requested
+    IF(BUILD_MACOS_DMG)
+        SET(CPACK_DMG_BACKGROUND_IMAGE "${CMAKE_SOURCE_DIR}/resources/macos/CMakeDMGBackground.tif")
+        set(CPACK_GENERATOR "DRAGNDROP")
+        set(CPACK_PACKAGE_FILE_NAME "EmulationStation")
+    ENDIF()
 ENDIF(LINUX)
 INCLUDE(CPack)

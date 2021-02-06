@@ -19,6 +19,8 @@
  <key>NSHighResolutionCapable</key>
  <string>True</string>
  <key>NSSupportsAutomaticGraphicsSwitching</key>
- <string>NO</string>
+ <string>YES</string>
+ <key>WorkingDirectory</key>
+ <string>$APP_PACKAGE/Contents</string>
 </dict>
 </plist>
