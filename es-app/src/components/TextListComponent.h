@@ -80,8 +80,8 @@ public:
 	inline void setLineSpacing(float lineSpacing) { mLineSpacing = lineSpacing; }
 
 protected:
-	virtual void onScroll(int /*amt*/) { if(!mScrollSound.empty()) Sound::get(mScrollSound)->play(); }
-	virtual void onCursorChanged(const CursorState& state);
+	void onScroll(int /*amt*/) override { if(!mScrollSound.empty()) Sound::get(mScrollSound)->play(); }
+	void onCursorChanged(const CursorState& state) override;
 
 private:
 	int mMarqueeOffset;
