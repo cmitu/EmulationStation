@@ -142,33 +142,84 @@ endif()
 
 #-------------------------------------------------------------------------------
 # set up CPack install stuff so `make install` does something useful
+IF(LINUX)
+    install(TARGETS emulationstation
+        RUNTIME
+        DESTINATION bin)
 
-install(TARGETS emulationstation
-    RUNTIME
-    DESTINATION bin)
+    INCLUDE(InstallRequiredSystemLibraries)
 
-INCLUDE(InstallRequiredSystemLibraries)
+    SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "A flexible graphical emulator front-end")
+    SET(CPACK_PACKAGE_DESCRIPTION "EmulationStation is a flexible, graphical front-end designed for keyboardless navigation of your multi-platform retro game collection.")
 
-SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "A flexible graphical emulator front-end")
-SET(CPACK_PACKAGE_DESCRIPTION "EmulationStation is a flexible, graphical front-end designed for keyboardless navigation of your multi-platform retro game collection.")
+    SET(CPACK_RESOURCE_FILE LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.md")
+    SET(CPACK_RESOURCE_FILE README "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
 
-SET(CPACK_RESOURCE_FILE LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.md")
-SET(CPACK_RESOURCE_FILE README "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
+    SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "Alec Lofquist <allofquist@yahoo.com>")
+    SET(CPACK_DEBIAN_PACKAGE_SECTION "misc")
+    SET(CPACK_DEBIAN_PACKAGE_PRIORITY "extra")
+    SET(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6, libsdl2-2.0-0, libfreeimage3, libfreetype6, libcurl4, libasound2, libvlc5, libvlccore9")
+    SET(CPACK_DEBIAN_PACKAGE_BUILDS_DEPENDS "debhelper (>= 8.0.0), cmake, g++ (>= 4.8), libsdl2-dev, libvlccore-dev, libvlc-dev, libfreeimage-dev, libfreetype6-dev, libcurl4-openssl-dev, libasound2-dev, libgl1-mesa-dev, rapidjson-dev")
 
-SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "Alec Lofquist <allofquist@yahoo.com>")
-SET(CPACK_DEBIAN_PACKAGE_SECTION "misc")
-SET(CPACK_DEBIAN_PACKAGE_PRIORITY "extra")
-SET(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6, libsdl2-2.0-0, libfreeimage3, libfreetype6, libcurl3, libasound2")
-SET(CPACK_DEBIAN_PACKAGE_BUILDS_DEPENDS "debhelper (>= 8.0.0), cmake, g++ (>= 4.8), libsdl2-dev, libfreeimage-dev, libfreetype6-dev, libcurl4-openssl-dev, libasound2-dev, libgl1-mesa-dev, rapidjson-dev")
+    SET(CPACK_PACKAGE_VENDOR "emulationstation.org")
+    SET(CPACK_PACKAGE_VERSION "2.10.0rp-dev")
+    SET(CPACK_PACKAGE_VERSION_MAJOR "2")
+    SET(CPACK_PACKAGE_VERSION_MINOR "10")
+    SET(CPACK_PACKAGE_VERSION_PATCH "0")
+    SET(CPACK_PACKAGE_INSTALL_DIRECTORY "emulationstation_${CMAKE_PACKAGE_VERSION}")
+    SET(CPACK_PACKAGE_EXECUTABLES "emulationstation" "emulationstation")
 
-SET(CPACK_PACKAGE_VENDOR "emulationstation.org")
-SET(CPACK_PACKAGE_VERSION "2.0.0~rc1")
-SET(CPACK_PACKAGE_VERSION_MAJOR "2")
-SET(CPACK_PACKAGE_VERSION_MINOR "0")
-SET(CPACK_PACKAGE_VERSION_PATCH "0")
-SET(CPACK_PACKAGE_INSTALL_DIRECTORY "emulationstation_${CMAKE_PACKAGE_VERSION}")
-SET(CPACK_PACKAGE_EXECUTABLES "emulationstation" "emulationstation")
+    SET(CPACK_GENERATOR "TGZ;DEB")
+ELSEIF(APPLE)
+    set(APP_NAME emulationstation)
 
-SET(CPACK_GENERATOR "TGZ;DEB")
+    # Add resources folder as sources
+    file(GLOB ES_RES 
+        "${CMAKE_SOURCE_DIR}/resources/*.ttf"
+        "${CMAKE_SOURCE_DIR}/resources/*.svg"
+        "${CMAKE_SOURCE_DIR}/resources/*.xml"
+    )
+    SET_TARGET_PROPERTIES(emulationstation PROPERTIES
+         MACOSX_BUNDLE ON
+         MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/resources/macos/Info.plist.in
+         MACOSX_BUNDLE_BUNDLE_NAME ${APP_NAME}
+         MACOSX_BUNDLE_GUI_IDENTIFIER org.emulationstation.${APP_NAME}
+         MACOSX_BUNDLE_EXECUTABLE_NAME ${APP_NAME}
+         MACOSX_BUNDLE_SHORT_VERSION_STRING 2.10.0rp-dev
+         MACOSX_BUNDLE_INFO_STRING "EmulationStation 2.10.0rp-dev"
+    )
+
+    # Get a list of paths to search for bundle dependencies
+    get_target_property(targtDeps ${APP_NAME} LINK_LIBRARIES) 
+    set(depDirs )
+    foreach(dep ${COMMON_LIBRARIES})
+        get_filename_component(dir ${dep} DIRECTORY)
+        if(dir)
+            list(APPEND depDirs ${dir})
+        endif(dir)
+    endforeach()
+
+    # Install binaries into the bundle
+    install(TARGETS ${APP_NAME}
+        BUNDLE DESTINATION . COMPONENT Runtime
+        RUNTIME DESTINATION bin COMPONENT Runtime
+    )
+
+    # Install runtime resources
+    install(
+        FILES ${ES_RES}
+        DESTINATION "./${APP_NAME}.app/Contents/Resources"
+    )
+
+    # Fix 'rpath' for dependencies
+    install(CODE "include(BundleUtilities)
+       set(BU_CHMOD_BUNDLE_ITEMS TRUE)
+       fixup_bundle(\"\${CMAKE_INSTALL_PREFIX}/${APP_NAME}.app\" \"\" \"${depDirs}\")"
+    )
+
+    # Pack the application
+    set(CPACK_GENERATOR "DRAGNDROP")
+    set(CPACK_PACKAGE_FILE_NAME "EmulationStation")
+ENDIF(LINUX)
 
 INCLUDE(CPack)

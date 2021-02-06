@@ -249,7 +249,6 @@ set(LIBRARY_OUTPUT_PATH ${dir} CACHE PATH "Build directory" FORCE)
 
 #-------------------------------------------------------------------------------
 # add each component
-
-add_subdirectory("external")
+add_subdirectory("external" EXCLUDE_FROM_ALL)
 add_subdirectory("es-core")
 add_subdirectory("es-app")
