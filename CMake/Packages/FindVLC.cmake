@@ -28,25 +28,21 @@ if(NOT WIN32)
   set(VLC_LIBRARIES ${VLC_LDFLAGS})
 endif(NOT WIN32)
 
-# TODO add argument support to pass version on find_package
-include(MacroEnsureVersion)
-macro_ensure_version(1.0.0 ${VLC_VERSION} VLC_VERSION_OK)
-if(VLC_VERSION_OK)
-  set(VLC_FOUND TRUE)
-  message(STATUS "VLC library found")
-else(VLC_VERSION_OK)
-  set(VLC_FOUND FALSE)
-  message(FATAL_ERROR "VLC library not found")
-endif(VLC_VERSION_OK)
-
 find_path(VLC_INCLUDE_DIR
-          NAMES vlc.h
-          PATHS ${VLC_INCLUDE_DIRS}
-          PATH_SUFFIXES vlc)
+          NAMES vlc/vlc.h
+          PATHS
+                ${VLC_INCLUDE_DIRS}
+                /Applications/VLC.app/Contents/MacOS/include
+                $ENV{HOME}/Applications/VLC.app/Contents/MacOS/include
+)
 
 find_library(VLC_LIBRARIES
              NAMES vlc
-             PATHS ${VLC_LIBRARY_DIRS})
+             PATHS
+                 ${VLC_LIBRARY_DIRS}
+                 /Applications/VLC.app/Contents/MacOS/lib
+                 $ENV{HOME}/Applications/VLC.app/Contents/MacOS/lib
+)
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(VLC DEFAULT_MSG VLC_INCLUDE_DIR VLC_LIBRARIES)
