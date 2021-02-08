@@ -170,8 +170,15 @@ IF(LINUX)
     SET(CPACK_PACKAGE_EXECUTABLES "emulationstation" "emulationstation")
 
     SET(CPACK_GENERATOR "TGZ;DEB")
+    INCLUDE(CPack)
 ELSEIF(APPLE)
-    set(APP_NAME emulationstation)
+    # On macos, the install target creates an application bundle
+    # Disable the UNIX/Linux install prefixes and build the bundle under 'macos'
+    set(APP_NAME EmulationStation)
+
+    IF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+        SET(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/macos" CACHE PATH "macos local install" FORCE)
+    ENDIF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
     # Add resources folder as sources
     file(GLOB ES_RES 
@@ -181,16 +188,17 @@ ELSEIF(APPLE)
     )
     SET_TARGET_PROPERTIES(emulationstation PROPERTIES
          MACOSX_BUNDLE ON
-         MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/resources/macos/Info.plist.in
+         MACOSX_BUNDLE_INFO_PLIST "${CMAKE_SOURCE_DIR}/resources/macos/Info.plist.in"
          MACOSX_BUNDLE_BUNDLE_NAME ${APP_NAME}
          MACOSX_BUNDLE_GUI_IDENTIFIER org.emulationstation.${APP_NAME}
-         MACOSX_BUNDLE_EXECUTABLE_NAME ${APP_NAME}
+         MACOSX_BUNDLE_EXECUTABLE_NAME emulationstation
          MACOSX_BUNDLE_SHORT_VERSION_STRING 2.10.0rp-dev
          MACOSX_BUNDLE_INFO_STRING "EmulationStation 2.10.0rp-dev"
+         OUTPUT_NAME ${APP_NAME}
     )
 
-    # Get a list of paths to search for bundle dependencies
-    get_target_property(targtDeps ${APP_NAME} LINK_LIBRARIES) 
+    # Get a list of paths to search for the bundle dependencies fixup
+    get_target_property(targetDeps emulationstation LINK_LIBRARIES)
     set(depDirs )
     foreach(dep ${COMMON_LIBRARIES})
         get_filename_component(dir ${dep} DIRECTORY)
@@ -200,26 +208,26 @@ ELSEIF(APPLE)
     endforeach()
 
     # Install binaries into the bundle
-    install(TARGETS ${APP_NAME}
+    install(TARGETS emulationstation
         BUNDLE DESTINATION . COMPONENT Runtime
         RUNTIME DESTINATION bin COMPONENT Runtime
     )
 
     # Install runtime resources
     install(
-        FILES ${ES_RES}
-        DESTINATION "./${APP_NAME}.app/Contents/Resources"
+        FILES ${ES_RES} "${CMAKE_SOURCE_DIR}/resources/macos/EmulationStation.icns"
+        DESTINATION "${APP_NAME}.app/Contents/Resources"
+    )
+    # Copy license files
+    install(
+        FILES "${CMAKE_SOURCE_DIR}/LICENSE.md" "${CMAKE_SOURCE_DIR}/opensans_license.txt"
+        DESTINATION "${APP_NAME}.app/Contents"
     )
 
-    # Fix 'rpath' for dependencies
+    # Run the fix bundle code, so `@rpath` is added correctly to the main executable
     install(CODE "include(BundleUtilities)
        set(BU_CHMOD_BUNDLE_ITEMS TRUE)
        fixup_bundle(\"\${CMAKE_INSTALL_PREFIX}/${APP_NAME}.app\" \"\" \"${depDirs}\")"
     )
-
-    # Pack the application
-    set(CPACK_GENERATOR "DRAGNDROP")
-    set(CPACK_PACKAGE_FILE_NAME "EmulationStation")
 ENDIF(LINUX)
 
-INCLUDE(CPack)
