@@ -55,6 +55,12 @@ void InputManager::init()
 
 	SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS,
 		Settings::getInstance()->getBool("BackgroundJoystickInput") ? "1" : "0");
+#if SDL_VERSION_ATLEAST(2,0,12)
+	// Don't enable the HIDAPI drivers by default, it may break existing configurations
+     // created before the drivers were enabled by default
+	SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI, "0");
+#endif
+
 	SDL_InitSubSystem(SDL_INIT_JOYSTICK);
 	SDL_JoystickEventState(SDL_ENABLE);
 
