@@ -125,7 +125,7 @@ endif()
 # define target
 include_directories(${COMMON_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/src)
 add_executable(emulationstation ${ES_SOURCES} ${ES_HEADERS})
-target_link_libraries(emulationstation ${COMMON_LIBRARIES} es-core)
+target_link_libraries(emulationstation ${COMMON_LIBRARIES} es-core ${CMAKE_DL_LIBS})
 
 # special properties for Windows builds
 if(MSVC)
@@ -138,7 +138,6 @@ if(MSVC)
     set_target_properties(emulationstation PROPERTIES LINK_FLAGS_RELEASE "/SUBSYSTEM:WINDOWS")
     set_target_properties(emulationstation PROPERTIES LINK_FLAGS_MINSIZEREL "/SUBSYSTEM:WINDOWS")
 endif()
-
 
 #-------------------------------------------------------------------------------
 # set up CPack install stuff so `make install` does something useful

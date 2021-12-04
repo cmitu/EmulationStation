@@ -7,9 +7,17 @@
 #include "Scripting.h"
 #include "Window.h"
 #include <pugixml/src/pugixml.hpp>
-#include <SDL.h>
 #include <iostream>
 #include <assert.h>
+
+#if defined(SDL_HINT_JOYSTICK_USE_OLD_NAME) && defined(__linux__)
+#include <dlfcn.h>
+
+extern "C" {
+const char* (*pf_SDL_JoystickCompatName)(SDL_Joystick *joystick);
+}
+#endif
+
 
 #define KEYBOARD_GUID_STRING "-1"
 #define CEC_GUID_STRING      "-2"
@@ -58,6 +66,16 @@ void InputManager::init()
 	SDL_InitSubSystem(SDL_INIT_JOYSTICK);
 	SDL_JoystickEventState(SDL_ENABLE);
 
+#if defined(SDL_HINT_JOYSTICK_USE_OLD_NAME) && defined(__linux__)
+	// Try to dynamically load the 'SDL_JoystickCompatName' function,
+	// since it only exists in the RetroPie provided SDL library.
+	// The function is only implemented on Linux
+	*(void **)(&pf_SDL_JoystickCompatName) = dlsym(RTLD_DEFAULT, "SDL_JoystickCompatName");
+	if (dlerror() != NULL)
+	{
+		LOG(LogInfo) << "Function 'SDL_JoystickCompatName' not found in the current loaded SDL library";
+	}
+#endif
 	// first, open all currently present joysticks
 	int numJoysticks = SDL_NumJoysticks();
 	for(int i = 0; i < numJoysticks; i++)
@@ -65,13 +83,13 @@ void InputManager::init()
 		addJoystickByDeviceIndex(i);
 	}
 
-	mKeyboardInputConfig = new InputConfig(DEVICE_KEYBOARD, "Keyboard", KEYBOARD_GUID_STRING);
+	mKeyboardInputConfig = new InputConfig(DEVICE_KEYBOARD, "Keyboard", KEYBOARD_GUID_STRING, 0, 0);
 	loadInputConfig(mKeyboardInputConfig);
 
 	SDL_USER_CECBUTTONDOWN = SDL_RegisterEvents(2);
 	SDL_USER_CECBUTTONUP   = SDL_USER_CECBUTTONDOWN + 1;
 	CECInput::init();
-	mCECInputConfig = new InputConfig(DEVICE_CEC, "CEC", CEC_GUID_STRING);
+	mCECInputConfig = new InputConfig(DEVICE_CEC, "CEC", CEC_GUID_STRING, 0, 0);
 	loadInputConfig(mCECInputConfig);
 }
 
@@ -90,8 +108,23 @@ void InputManager::addJoystickByDeviceIndex(int id)
 	char guid[65];
 	SDL_JoystickGetGUIDString(SDL_JoystickGetGUID(joy), guid, 65);
 
+	unsigned int vendorId = SDL_JoystickGetVendor(joy);
+	unsigned int productId = SDL_JoystickGetProduct(joy);
+
 	// create the InputConfig
-	mInputConfigs[joyId] = new InputConfig(joyId, SDL_JoystickName(joy), guid);
+	mInputConfigs[joyId] = new InputConfig(joyId, SDL_JoystickName(joy), guid, vendorId, productId);
+
+
+	// If we're using RetroPie's SDL library, retrieve the backwards compatible device name
+#if defined(SDL_HINT_JOYSTICK_USE_OLD_NAME) && defined(__linux__)
+	if(*pf_SDL_JoystickCompatName)
+	{
+		LOG(LogInfo) << "Function 'SDL_JoystickCompatName' found";
+		const std::string compatName = (*pf_SDL_JoystickCompatName)(joy);
+		mInputConfigs[joyId]->setCompatDeviceName(compatName);
+	}
+#endif
+
 	if(!loadInputConfig(mInputConfigs[joyId]))
 	{
 		LOG(LogInfo) << "Added unconfigured joystick " << SDL_JoystickName(joy) << " (GUID: " << guid << ", instance ID: " << joyId << ", device index: " << id << ").";

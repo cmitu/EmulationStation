@@ -5,6 +5,7 @@
 #include <CECInput.h>
 #include <SDL_joystick.h>
 #include <SDL_keyboard.h>
+#include "utils/StringUtil.h"
 #include <map>
 #include <sstream>
 #include <vector>
@@ -96,7 +97,7 @@ public:
 class InputConfig
 {
 public:
-	InputConfig(int deviceId, const std::string& deviceName, const std::string& deviceGUID);
+	InputConfig(int deviceId, const std::string& deviceName, const std::string& deviceGUID, const unsigned int vendorId, const unsigned int productId);
 
 	void clear();
 	void mapInput(const std::string& name, Input input);
@@ -104,7 +105,12 @@ public:
 
 	inline int getDeviceId() const { return mDeviceId; };
 	inline const std::string& getDeviceName() { return mDeviceName; }
+	inline const std::string& getCompatDeviceName() { return mCompatDeviceName; }
 	inline const std::string& getDeviceGUIDString() { return mDeviceGUID; }
+	inline const unsigned int getDeviceVendor() { return mVendorId; }
+	inline const unsigned int getDeviceProduct() { return mProductId; }
+
+	inline void setCompatDeviceName(const std::string& compatDeviceName) { mCompatDeviceName = compatDeviceName; }
 
 	//Returns true if Input is mapped to this name, false otherwise.
 	bool isMappedTo(const std::string& name, Input input);
@@ -126,7 +132,10 @@ private:
 	std::map<std::string, Input> mNameMap;
 	const int mDeviceId;
 	const std::string mDeviceName;
+	std::string mCompatDeviceName;
 	const std::string mDeviceGUID;
+	const unsigned int mVendorId;
+	const unsigned int mProductId;
 };
 
 #endif // ES_CORE_INPUT_CONFIG_H
