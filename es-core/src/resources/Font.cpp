@@ -416,29 +416,6 @@ void Font::renderTextCache(TextCache* cache)
 	}
 }
 
-Vector2f Font::sizeCodePoint(unsigned int character, float lineSpacing)
-{
-	float lineWidth = 0.0f;
-
-	const float lineHeight = getHeight(lineSpacing);
-
-	float y = lineHeight;
-
-	if(character == '\n')
-	{
-		lineWidth = 0.0f;
-		y += lineHeight;
-	}
-	else
-	{
-		Glyph* glyph = getGlyph(character);
-		if (glyph)
-			lineWidth = glyph->advance.x();
-	}
-
-	return Vector2f(lineWidth, y);
-}
-
 Vector2f Font::sizeText(std::string text, float lineSpacing)
 {
 	float lineWidth = 0.0f;
@@ -485,56 +462,45 @@ float Font::getLetterHeight()
 	return glyph->texSize.y() * glyph->texture->textureSize.y();
 }
 
-
-// Naive way to find whitespace characters, only includes the common ones in the ASCII range!
-bool Font::isWhiteSpace(unsigned int c)
+//the worst algorithm ever written
+//breaks up a normal string with newlines to make it fit xLen
+std::string Font::wrapText(std::string text, float xLen)
 {
-	return (c == (unsigned int) ' ' ||
-		c == (unsigned int) '\n' ||
-		c == (unsigned int) '\t' ||
-		c == (unsigned int) '\v' ||
-		c == (unsigned int) '\f' ||
-		c == (unsigned int) '\r');
-}
+	std::string out;
 
-// Breaks up a normal string with newlines to make it fit width (in pixels)
-std::string Font::wrapText(std::string text, float maxWidth)
-{
-	std::string out = "";
-	while(text.length() > 0)  // find next cut-point
+	std::string line, word, temp;
+	size_t space;
+
+	Vector2f textSize;
+
+	while(text.length() > 0) //while there's text or we still have text to render
 	{
-		size_t cursor = 0;
-		float lineWidth = 0.0f;
-		size_t lastWhiteSpace = 0;
+		space = text.find_first_of(" \t\n");
+		if(space == std::string::npos)
+			space = text.length() - 1;
 
-		while((lineWidth < maxWidth) && (cursor < text.length()))
-		{
-			unsigned int c = Utils::String::chars2Unicode(text, cursor); // also advances cursor!
-			lineWidth += sizeCodePoint(c).x();
-			if(isWhiteSpace(c))
-			{
-				lastWhiteSpace = cursor;
-			}
+		word = text.substr(0, space + 1);
+		text.erase(0, space + 1);
 
-			if(c == '\n')
-			{
-				lineWidth = 0.0f;
-			}
-		}
+		temp = line + word;
 
-		if(cursor == text.length()) // arrived at end of text.
+		textSize = sizeText(temp);
+
+		// if the word will fit on the line, add it to our line, and continue
+		if(textSize.x() <= xLen)
 		{
-			out += text;
-			text.erase();
-		}
-		else // need to cut at last whitespace or lacking that, the previous cursor.
-		{
-			size_t cut = (lastWhiteSpace != 0) ? lastWhiteSpace : Utils::String::prevCursor(text, cursor);
-			out += text.substr(0, cut) + "\n";
-			text.erase(0, cut);
-			lineWidth = 0.0f;
+			line = temp;
+			continue;
+		}else{
+			// the next word won't fit, so break here
+			out += line + '\n';
+			line = word;
 		}
 	}
+
+	// whatever's left should fit
+	out += line;
+
 	return out;
 }
 
@@ -592,20 +558,20 @@ float Font::getNewlineStartOffset(const std::string& text, const unsigned int& c
 {
 	switch(alignment)
 	{
-		case ALIGN_LEFT:
-			return 0;
-		case ALIGN_CENTER:
-			{
-				unsigned int endChar = (unsigned int)text.find('\n', charStart);
-				return (xLen - sizeText(text.substr(charStart, endChar != std::string::npos ? endChar - charStart : endChar)).x()) / 2.0f;
-			}
-		case ALIGN_RIGHT:
-			{
-				unsigned int endChar = (unsigned int)text.find('\n', charStart);
-				return xLen - (sizeText(text.substr(charStart, endChar != std::string::npos ? endChar - charStart : endChar)).x());
-			}
-		default:
-			return 0;
+	case ALIGN_LEFT:
+		return 0;
+	case ALIGN_CENTER:
+		{
+			unsigned int endChar = (unsigned int)text.find('\n', charStart);
+			return (xLen - sizeText(text.substr(charStart, endChar != std::string::npos ? endChar - charStart : endChar)).x()) / 2.0f;
+		}
+	case ALIGN_RIGHT:
+		{
+			unsigned int endChar = (unsigned int)text.find('\n', charStart);
+			return xLen - (sizeText(text.substr(charStart, endChar != std::string::npos ? endChar - charStart : endChar)).x());
+		}
+	default:
+		return 0;
 	}
 }
 
