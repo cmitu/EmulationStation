@@ -54,14 +54,18 @@ NOTE: to generate a `Debug` build on Unix/Linux, run the Makefile generation ste
 cmake -DCMAKE_BUILD_TYPE=Debug .
 ```
 
-**On the Raspberry Pi**  
+**On the Raspberry Pi**
 
 * Choosing a GLES implementation.
 
    * if the Pi system uses the legacy/Broadcom driver, install the `libraspberry-dev` package before running `cmake` to configure the build
-   * if the Pi system uses the Mesa VC3/V3D GL driver, build using `-DUSE_MESA_GLES=On` to choose the MESA GLES implementation. This option is _mandatory_ when compiling for a Pi4 system, since the legacy GL drivers are not supported anymore on this system.
+   * if the Pi system uses the Mesa VC4/V3D GL driver, build using `-DUSE_MESA_GLES=On` to choose the MESA GLES implementation. This option is _mandatory_ when compiling for a Pi4 system, since the legacy GL drivers are not supported anymore on this system.
 
-* Support for using `omxplayer` to play video previews in the gamelist is enabled by adding `-DRPI=On` to the build options
+  NOTE: Starting with RasPI OS 'Bullseye', the legacy/Broadcom drivers are not supported anymore, so `-DUSE_MESA_GLES=On` should be used.
+
+* Enable the audio/memory defaults by adding `-DRPI=On` to the build options
+* Support for using `omxplayer` to play video previews in the gamelist is enabled by adding `-DOMX=On` to the build options.
+  NOTE: `omxplayer` support is not available on 64bit RasPI OS or in the default RasPI OS 'Bullseye' configuration.
 
 **GLES build notes**
 
@@ -111,25 +115,7 @@ The new configuration will be added to the `~/.emulationstation/es_input.cfg` fi
 
 **If your controller stops working, you can delete the `~/.emulationstation/es_input.cfg` file to make the input configuration screen re-appear on next run.**
 
-
-You can use `--help` or `-h` to view a list of command-line options. Briefly outlined here:
-```
---resolution [width] [height]   try and force a particular resolution
---gamelist-only                 skip automatic game search, only read from gamelist.xml
---ignore-gamelist               ignore the gamelist (useful for troubleshooting)
---draw-framerate                display the framerate
---no-exit                       don't show the exit option in the menu
---no-splash                     don't show the splash screen
---debug                         more logging, show console on Windows
---scrape                        scrape using command line interface
---windowed                      not fullscreen, should be used with --resolution
---vsync [1/on or 0/off]         turn vsync on or off (default is on)
---max-vram [size]               Max VRAM to use in Mb before swapping. 0 for unlimited
---force-kid             Force the UI mode to be Kid
---force-kiosk           Force the UI mode to be Kiosk
---force-disable-filters         Force the UI to ignore applied filters in gamelist
---help, -h                      summon a sentient, angry tuba
-```
+You can use `--help` or `-h` to view a list of command-line options.
 
 As long as ES hasn't frozen, you can always press F4 to close the application.
 

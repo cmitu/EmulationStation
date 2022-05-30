@@ -2,7 +2,8 @@ cmake_minimum_required(VERSION 2.8)
 
 option(GLES "Set to ON if targeting Embedded OpenGL" ${GLES})
 option(GL "Set to ON if targeting Desktop OpenGL" ${GL})
-option(RPI "Set to ON to enable the Raspberry PI video player (omxplayer) and audio options" ${RPI})
+option(RPI "Set to ON to enable the Raspberry PI memory and audio options" ${RPI})
+option(OMX "Set to On to enable OMXPlayer for video snapshots" ${OMX})
 option(CEC "Set to ON to enable CEC" ${CEC})
 option(PROFILING "Set to ON to enable profiling" ${PROFILING})
 
@@ -110,6 +111,10 @@ if(DEFINED BCMHOST OR RPI)
     add_definitions(-D_RPI_)
 endif()
 
+if(OMX)
+    add_definitions(-D_OMX_)
+endif()
+
 if(DEFINED libCEC_FOUND)
     add_definitions(-DHAVE_LIBCEC)
 endif()
@@ -159,7 +164,7 @@ set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -D_DEBUG")
 set(COMMON_INCLUDE_DIRS
     ${FREETYPE_INCLUDE_DIRS}
     ${FreeImage_INCLUDE_DIRS}
-    ${SDL2_INCLUDE_DIR}
+    ${SDL2_INCLUDE_DIRS}
     ${CURL_INCLUDE_DIR}
     ${VLC_INCLUDE_DIR}
     ${RAPIDJSON_INCLUDE_DIRS}
@@ -197,7 +202,7 @@ endif()
 set(COMMON_LIBRARIES
     ${FREETYPE_LIBRARIES}
     ${FreeImage_LIBRARIES}
-    ${SDL2_LIBRARY}
+    ${SDL2_LIBRARIES}
     ${CURL_LIBRARIES}
     ${VLC_LIBRARIES}
     pugixml

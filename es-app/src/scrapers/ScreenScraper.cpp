@@ -98,6 +98,8 @@ const std::map<PlatformId, unsigned short> screenscraper_platformid_map{
 	{ VECTREX, 102 },
 	{ TRS80_COLOR_COMPUTER, 144 },
 	{ TANDY, 144 },
+	{ TI_99, 205 },
+	{ DRAGON32, 91 },
 	{ ZMACHINE, 21 }
 };
 
@@ -142,7 +144,9 @@ void screenscraper_generate_scraper_requests(const ScraperSearchParams& params,
 
 	ScreenScraperRequest::ScreenScraperConfig ssConfig;
 
-	path = ssConfig.getGameSearchUrl(params.game->getFileName());
+	// Check if the user has overridden the file name
+	path = ssConfig.getGameSearchUrl(params.nameOverride.empty() ? params.game->getFileName() : params.nameOverride);
+
 	auto& platforms = params.system->getPlatformIds();
 	std::vector<unsigned short> p_ids;
 
