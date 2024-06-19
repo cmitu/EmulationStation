@@ -80,7 +80,7 @@ bool TextureData::initSVGFromMemory(const unsigned char* fileData, size_t length
 
 bool TextureData::initImageFromMemory(const unsigned char* fileData, size_t length)
 {
-	size_t width, height;
+	int width, height;
 
 	// If already initialised then don't read again
 	{

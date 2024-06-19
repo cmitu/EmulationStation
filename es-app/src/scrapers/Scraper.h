@@ -162,9 +162,4 @@ std::unique_ptr<ImageDownloadHandle> downloadImageAsync(const std::string& url, 
 // Resolves all metadata assets that need to be downloaded.
 std::unique_ptr<MDResolveHandle> resolveMetaDataAssets(const ScraperSearchResult& result, const ScraperSearchParams& search);
 
-//You can pass 0 for maxWidth or maxHeight to automatically keep the aspect ratio.
-//Will overwrite the image at [path] with the new resized one.
-//Returns true if successful, false otherwise.
-bool resizeImage(const std::string& path, int maxWidth, int maxHeight);
-
 #endif // ES_APP_SCRAPERS_SCRAPER_H

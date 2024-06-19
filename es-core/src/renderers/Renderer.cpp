@@ -29,15 +29,13 @@ namespace Renderer
 
 	static void setIcon()
 	{
-		size_t                     width   = 0;
-		size_t                     height  = 0;
+		int                     width   = 0;
+		int                     height  = 0;
 		const ResourceData         resData = ResourceManager::getInstance()->getFileData(":/window_icon_256.png");
 		std::vector<unsigned char> rawData = ImageIO::loadFromMemoryRGBA32(resData.ptr.get(), resData.length, width, height);
 
 		if(!rawData.empty())
 		{
-			ImageIO::flipPixelsVert(rawData.data(), width, height);
-
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
 			const unsigned int rmask = 0xFF000000;
 			const unsigned int gmask = 0x00FF0000;

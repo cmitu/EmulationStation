@@ -316,11 +316,6 @@ int main(int argc, char* argv[])
 	}
 #endif
 
-	// call this ONLY when linking with FreeImage as a static library
-#ifdef FREEIMAGE_LIB
-	FreeImage_Initialise();
-#endif
-
 	//if ~/.emulationstation doesn't exist and cannot be created, bail
 	if(!verifyHomeFolderExists())
 		return 1;

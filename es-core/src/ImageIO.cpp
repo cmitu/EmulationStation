@@ -1,75 +1,32 @@
 #include "ImageIO.h"
-
 #include "Log.h"
-#include <FreeImage.h>
-#include <string.h>
 
-std::vector<unsigned char> ImageIO::loadFromMemoryRGBA32(const unsigned char * data, const size_t size, size_t & width, size_t & height)
+
+#ifndef STB_IMAGE_RESIZE_IMPLEMENTATION
+#define STB_IMAGE_RESIZE_IMPLEMENTATION
+#include <stb/stb_image_resize2.h>
+#endif
+
+#ifndef STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_IMPLEMENTATION
+#define STBI_NO_STDIO
+#include <stb/stb_image.h>
+#endif
+
+#ifndef STB_IMAGE_WRITE_IMPLEMENTATION
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include <stb/stb_image_write.h>
+#endif
+
+std::vector<unsigned char> ImageIO::loadFromMemoryRGBA32(const unsigned char * data, const int size, int & width, int & height)
 {
 	std::vector<unsigned char> rawData;
-	width = 0;
-	height = 0;
-	FIMEMORY * fiMemory = FreeImage_OpenMemory((BYTE *)data, (DWORD)size);
-	if (fiMemory != nullptr) {
-		//detect the filetype from data
-		FREE_IMAGE_FORMAT format = FreeImage_GetFileTypeFromMemory(fiMemory);
-		if (format != FIF_UNKNOWN && FreeImage_FIFSupportsReading(format))
-		{
-			//file type is supported. load image
-			FIBITMAP * fiBitmap = FreeImage_LoadFromMemory(format, fiMemory);
-			if (fiBitmap != nullptr)
-			{
-				//loaded. convert to 32bit if necessary
-				if (FreeImage_GetBPP(fiBitmap) != 32)
-				{
-					FIBITMAP * fiConverted = FreeImage_ConvertTo32Bits(fiBitmap);
-					if (fiConverted != nullptr)
-					{
-						//free original bitmap data
-						FreeImage_Unload(fiBitmap);
-						fiBitmap = fiConverted;
-					}
-				}
-				if (fiBitmap != nullptr)
-				{
-					width = FreeImage_GetWidth(fiBitmap);
-					height = FreeImage_GetHeight(fiBitmap);
-					//loop through scanlines and add all pixel data to the return vector
-					//this is necessary, because width*height*bpp might not be == pitch
-					unsigned char * tempData = new unsigned char[width * height * 4];
-					for (size_t i = 0; i < height; i++)
-					{
-						const BYTE * scanLine = FreeImage_GetScanLine(fiBitmap, (int)i);
-						memcpy(tempData + (i * width * 4), scanLine, width * 4);
-					}
-					//convert from BGRA to RGBA
-					for(size_t i = 0; i < width*height; i++)
-					{
-						RGBQUAD bgra = ((RGBQUAD *)tempData)[i];
-						RGBQUAD rgba;
-						rgba.rgbBlue = bgra.rgbRed;
-						rgba.rgbGreen = bgra.rgbGreen;
-						rgba.rgbRed = bgra.rgbBlue;
-						rgba.rgbReserved = bgra.rgbReserved;
-						((RGBQUAD *)tempData)[i] = rgba;
-					}
-					rawData = std::vector<unsigned char>(tempData, tempData + width * height * 4);
-					//free bitmap data
-					FreeImage_Unload(fiBitmap);
-					delete[] tempData;
-				}
-			}
-			else
-			{
-				LOG(LogError) << "Error - Failed to load image from memory!";
-			}
-		}
-		else
-		{
-			LOG(LogError) << "Error - File type " << (format == FIF_UNKNOWN ? "unknown" : "unsupported") << "!";
-		}
-		//free FIMEMORY again
-		FreeImage_CloseMemory(fiMemory);
+
+	// We can read the pixels already flipped, so we don't need to call 'flipPixelsVert'
+	stbi_set_flip_vertically_on_load(true);
+	unsigned char *tempData = (unsigned char*)stbi_load_from_memory(data, size, &width, &height, 0, STBI_rgb_alpha);
+	if (height > 0 && width > 0) {
+		rawData =  std::vector<unsigned char>(tempData, tempData + width * height * 4);
 	}
 	return rawData;
 }
@@ -87,4 +44,43 @@ void ImageIO::flipPixelsVert(unsigned char* imagePx, const size_t& width, const 
 			arr[x + (height * width) - ((y + 1) * width)] = temp;
 		}
 	}
+}
+
+//you can pass 0 for width or height to keep aspect ratio
+unsigned char* ImageIO::resizeImage(unsigned char *data, int maxWidth, int maxHeight)
+{
+	int height = 0;
+	int width = 0;
+
+	if (maxWidth == 0 && maxHeight == 0)
+		return nullptr;
+
+	unsigned char *in_pixels = stbi_load_from_memory(data, 0, &width, &height, 0, STBI_rgb_alpha);
+
+	if (!in_pixels)
+		return nullptr;
+
+	if (maxWidth == 0)
+	{
+		maxWidth = (int)((maxHeight / height) * width);
+	}
+	else if (maxHeight == 0)
+	{
+		maxHeight = (int)((maxWidth / width) * height);
+	}
+
+	unsigned char *out_pixels = (unsigned char*)malloc(maxHeight * maxHeight * 4);
+	stbir_resize_uint8_linear(in_pixels, width, height, 0, out_pixels, maxWidth, maxHeight, 4, STBIR_4CHANNEL);
+	
+	if (!out_pixels)
+		return nullptr;
+
+	return out_pixels;
+}
+
+unsigned char* ImageIO::convertImageToPng(unsigned char* pixels, const int width, const int height)
+{
+	int length;
+	unsigned char* pngData = stbi_write_png_to_mem(pixels, 0, width, height, STBI_rgb_alpha, &length);
+	return pngData;
 }
