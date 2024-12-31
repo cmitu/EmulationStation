@@ -286,6 +286,11 @@ void VideoGameListView::updateInfoPanel()
 			mLastPlayed.setValue(file->metadata.get("lastplayed"));
 			mPlayCount.setValue(file->metadata.get("playcount"));
 		}
+		else
+		{
+			mPlayCount.setValue("");
+			mLastPlayed.setValue("");
+		}
 
 		fadingOut = false;
 	}
